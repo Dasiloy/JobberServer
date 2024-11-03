@@ -21,6 +21,6 @@ export class Education extends BaseEntity {
   })
   end_date: Date;
 
-  @ManyToOne(() => Profile, (profile) => profile.educations, { cascade: true })
+  @ManyToOne(() => Profile, (profile) => profile.educations)
   profile: Profile;
 }

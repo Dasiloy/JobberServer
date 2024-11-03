@@ -30,7 +30,7 @@ export class User extends BaseEntity {
   })
   email_verified: boolean;
 
-  @Column('datetime', {
+  @Column('timestamp', {
     nullable: true,
   })
   email_verified_at: Date;
@@ -58,7 +58,7 @@ export class User extends BaseEntity {
   })
   phone_number_verified: boolean;
 
-  @Column('datetime', {
+  @Column('timestamp', {
     nullable: true,
   })
   phone_number_verified_at: Date;
