@@ -44,9 +44,7 @@ export class WorkHistory extends BaseEntity {
   })
   end_date: Date;
 
-  @ManyToOne(() => Profile, (profile) => profile.work_history, {
-    cascade: true,
-  })
+  @ManyToOne(() => Profile, (profile) => profile.work_history)
   profile: Profile;
 
   @ManyToOne(() => Company, (company) => company.employments)

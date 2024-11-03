@@ -5,7 +5,7 @@ import {
   JobType,
 } from '@/jobs/jobs.enum';
 import { User } from '@/users/users.entity';
-import { Portfolio } from '@/portfolios/portfolios.entity.';
+// import { Portfolio } from '@/portfolios/portfolios.entity';
 import { Entity, Column, OneToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Education } from '@/educations/education.entity';
 import { BaseEntity } from '@/base_entity';
@@ -50,11 +50,11 @@ export class Profile extends BaseEntity {
   @OneToOne(() => User, (user) => user.profile)
   user: User;
 
-  @OneToOne(() => Portfolio, (portfolio) => portfolio.profile, {
-    cascade: true,
-  })
-  @JoinColumn()
-  portfolio: Portfolio;
+  // @OneToOne(() => Portfolio, {
+  //   cascade: true,
+  // })
+  // @JoinColumn()
+  // portfolio: Portfolio;
 
   @OneToMany(() => Education, (education) => education.profile, {
     cascade: true,
