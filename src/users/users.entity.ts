@@ -35,11 +35,31 @@ export class User extends BaseEntity {
   })
   email_verified_at: Date;
 
+  @Column('int', {
+    nullable: true,
+  })
+  email_token: number;
+
+  @Column('timestamp', {
+    nullable: true,
+  })
+  email_token_expired_at: Date;
+
   @Column('varchar', {
     nullable: false,
     select: false,
   })
   password: string;
+
+  @Column('int', {
+    nullable: true,
+  })
+  password_reset_token: number;
+
+  @Column('timestamp', {
+    nullable: true,
+  })
+  password_reset_token_expired_at: Date;
 
   @Column('varchar', {
     length: 10,
@@ -63,10 +83,15 @@ export class User extends BaseEntity {
   })
   phone_number_verified_at: Date;
 
-  @Column('boolean', {
-    default: false,
+  @Column('int', {
+    nullable: true,
   })
-  id_verified: boolean;
+  phone_number_token: number;
+
+  @Column('timestamp', {
+    nullable: true,
+  })
+  phone_number_token_expired_at: Date;
 
   @Column('boolean', {
     default: true,
@@ -90,7 +115,7 @@ export class User extends BaseEntity {
   })
   role: Role;
 
-  @OneToOne(() => Profile, (profile) => profile.user, {
+  @OneToOne(() => Profile, {
     cascade: true,
   })
   @JoinColumn()

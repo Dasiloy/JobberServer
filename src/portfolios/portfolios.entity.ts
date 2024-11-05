@@ -4,6 +4,9 @@ import { BaseEntity } from '@/base_entity';
 
 @Entity()
 export class Portfolio extends BaseEntity {
-  @OneToMany(() => PortfolioItem, (portfolioItem) => portfolioItem.portfolio)
+  @OneToMany(() => PortfolioItem, (portfolioItem) => portfolioItem.portfolio, {
+    cascade: true,
+    nullable: true,
+  })
   portfolio_items: PortfolioItem[];
 }

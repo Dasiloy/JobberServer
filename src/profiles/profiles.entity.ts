@@ -4,8 +4,7 @@ import {
   JobProfession,
   JobType,
 } from '@/jobs/jobs.enum';
-import { User } from '@/users/users.entity';
-import { Entity, Column, OneToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Entity, Column, OneToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Education } from '@/educations/education.entity';
 import { BaseEntity } from '@/base_entity';
 import { JobApplication } from '@/job_applications/job_applications.entity';
@@ -25,6 +24,7 @@ export class Profile extends BaseEntity {
     type: 'enum',
     enum: JobType,
     array: true,
+    default: [],
   })
   job_type: JobType[];
 
@@ -32,6 +32,7 @@ export class Profile extends BaseEntity {
     type: 'enum',
     enum: JobLocation,
     array: true,
+    default: [],
   })
   job_location: JobLocation[];
 
@@ -39,16 +40,14 @@ export class Profile extends BaseEntity {
     type: 'enum',
     enum: JobExperience,
     array: true,
+    default: [],
   })
   job_experiences: JobExperience[];
 
-  @Column({
+  @Column('text', {
     nullable: true,
   })
   resume_url: string;
-
-  @OneToOne(() => User, (user) => user.profile)
-  user: User;
 
   @OneToOne(() => Portfolio, {
     cascade: true,
