@@ -53,6 +53,8 @@ const cookieSession = require('cookie-session');
         JWT_REFRESHTOKEN_EXPIRATION: Joi.string().required(),
         JWT_PROFILE_SECRET: Joi.string().required(),
         JWT_PROFILE_EXPIRATION: Joi.string().required(),
+        JWT_PASSWORD_SECRET: Joi.string().required(),
+        JWT_PASSWORD_EXPIRATION: Joi.string().required(),
         // SMTP_ENABLED: Joi.boolean().default(false),
         // SMTP_SECURE: Joi.boolean().default(false),
         // SMTP_TLS_REQUIRED: Joi.boolean().default(false),

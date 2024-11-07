@@ -1,12 +1,4 @@
-import {
-  Body,
-  ConflictException,
-  Controller,
-  Patch,
-  Post,
-  Req,
-  Session,
-} from '@nestjs/common';
+import { Body, Controller, Post, Req, Session } from '@nestjs/common';
 import { ProfilesService } from './profiles.service';
 import { CurrentUser } from '@/addons/decorators/current_user.decorator';
 import { User } from '@/users/users.entity';
@@ -14,6 +6,7 @@ import { CreateProfileDto } from './dtos/create_profile.dto';
 import { SetRouteMeta } from '@/addons/decorators/routes.decorator';
 import { RouteMeta } from '@/addons/enums/routes.enum';
 import { Request } from 'express';
+import { UpdateProfileDto } from './dtos/update_profile.dto';
 
 @Controller('profiles')
 export class ProfilesController {
@@ -27,12 +20,6 @@ export class ProfilesController {
     @Session() nestSession: any,
     @Req() request: Request,
   ) {
-    if (user.profile) {
-      throw new ConflictException(
-        'You already have a profile. Update your profile instead.',
-      );
-    }
-
     return this.profilesService.createUserProfile(body, {
       user,
       request,
@@ -40,8 +27,11 @@ export class ProfilesController {
     });
   }
 
-  @Patch('/:id')
-  update() {}
+  @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Post('/update')
+  updateMyProfile(@Body() body: UpdateProfileDto, @CurrentUser() user: User) {
+    return this.profilesService.updateMyProfile(body, user);
+  }
 
   @Post('upload-resume')
   async uploadResume() {

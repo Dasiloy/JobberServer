@@ -24,6 +24,8 @@ export class RefreshToken {
   @JoinColumn()
   user: User;
 
-  @OneToOne(() => Session, (session) => session.refresh_token)
+  @OneToOne(() => Session, (session) => session.refresh_token, {
+    onDelete: 'CASCADE',
+  })
   session: Session;
 }

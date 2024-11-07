@@ -9,6 +9,7 @@ import { RoleGuard } from './guards/role.guard';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Session } from './session.entity';
 import { RefreshToken } from './refresh_token.entity';
+import { UtilsService } from './utils.service';
 
 @Global()
 @Module({
@@ -20,6 +21,7 @@ import { RefreshToken } from './refresh_token.entity';
   controllers: [AuthController],
   providers: [
     AuthService,
+    UtilsService,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,

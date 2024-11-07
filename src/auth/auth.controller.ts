@@ -15,6 +15,10 @@ import { VerifyCodeDto } from './dtos/verify_code.dto';
 import { CurrentUser } from '@/addons/decorators/current_user.decorator';
 import { User } from '@/users/users.entity';
 import { Request } from 'express';
+import { LoginDto } from './dtos/login.dto';
+import { ForgotPasswordDto } from './dtos/forgot_password.dto';
+import { ResetPasswordDto } from './dtos/reset_password.dto';
+import { ChangePasswordDto } from './dtos/change_password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -57,22 +61,51 @@ export class AuthController {
   @SetRouteMeta(RouteMeta.IS_PUBLIC)
   @HttpCode(200)
   @Post('/login')
-  login() {}
+  login(
+    @Body() body: LoginDto,
+    @Session() session: any,
+    @Req() request: Request,
+  ) {
+    return this.authService.login(body, {
+      nestSession: session,
+      request,
+    });
+  }
 
   @SetRouteMeta(RouteMeta.IS_PUBLIC)
   @HttpCode(200)
   @Post('/forgot-password')
-  forgotPassword() {}
+  forgotPassword(@Body() body: ForgotPasswordDto) {
+    return this.authService.forgotPassword(body);
+  }
+
+  @SetRouteMeta(RouteMeta.IS_OTP_REQUIRED)
+  @HttpCode(200)
+  @Post('/resend-password-token')
+  resendPasswordVerificationToken(@CurrentUser() user: User) {
+    return this.authService.resendPhoneVerificationToken(user);
+  }
 
   @SetRouteMeta(RouteMeta.IS_OTP_REQUIRED)
   @HttpCode(200)
   @Post('/verify-reset-token')
-  verifyResetToken() {}
+  verifyResetToken(@Body() body: VerifyCodeDto, @CurrentUser() user: User) {
+    return this.authService.verifyPasswordToken(Number(body.token), user);
+  }
 
-  @SetRouteMeta(RouteMeta.IS_OTP_REQUIRED)
+  @SetRouteMeta(RouteMeta.IS_PASSWORD_AUTH_REQUIRED)
   @HttpCode(200)
   @Post('/reset-password')
-  resetPassword() {}
+  resetPassword(@CurrentUser() user: User, @Body() body: ResetPasswordDto) {
+    return this.authService.resetPassword(user, body);
+  }
+
+  @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @HttpCode(200)
+  @Post('/change-password')
+  changePassword(@CurrentUser() user: User, @Body() body: ChangePasswordDto) {
+    return this.authService.changePassword(user, body);
+  }
 
   @SetRouteMeta(RouteMeta.IS_PUBLIC)
   @HttpCode(200)
@@ -92,9 +125,6 @@ export class AuthController {
   @HttpCode(200)
   @Get('/me')
   getLoggedInUser(@CurrentUser() user: User) {
-    return {
-      message: 'User retrieved successfully',
-      data: user,
-    };
+    return this.authService.GetLoggedInUser(user);
   }
 }

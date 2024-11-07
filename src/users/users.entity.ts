@@ -1,10 +1,24 @@
-import { Column, Entity, JoinColumn, ManyToMany, OneToOne } from 'typeorm';
+import {
+  AfterLoad,
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToMany,
+  OneToOne,
+} from 'typeorm';
 import { Role } from './users.enum';
 import { Profile } from '@/profiles/profiles.entity';
 import { Company } from '@/companies/companies.entity';
 import { BaseEntity } from '@/base_entity';
+import * as bcrypt from 'bcrypt';
 
 @Entity()
+@Index(['country_code', 'phone_number'], {
+  unique: true,
+})
 export class User extends BaseEntity {
   @Column('varchar', {
     length: 255,
@@ -47,7 +61,6 @@ export class User extends BaseEntity {
 
   @Column('varchar', {
     nullable: false,
-    select: false,
   })
   password: string;
 
@@ -115,6 +128,8 @@ export class User extends BaseEntity {
   })
   role: Role;
 
+  private current_password: string;
+
   @OneToOne(() => Profile, {
     cascade: true,
   })
@@ -123,4 +138,26 @@ export class User extends BaseEntity {
 
   @ManyToMany(() => Company, (company) => company.followers)
   followed_companies: Company[];
+
+  comparePassword(password: string) {
+    return bcrypt.compareSync(password, this.password);
+  }
+
+  @AfterLoad()
+  loadCurrentPassword() {
+    this.current_password = this.password;
+  }
+
+  @BeforeUpdate()
+  hashPasswordOnPasswordChange() {
+    if (this.current_password !== this.password) {
+      this.password = bcrypt.hashSync(this.password, 10);
+    }
+    this.current_password = this.password;
+  }
+
+  @BeforeInsert()
+  hashPassword() {
+    this.password = bcrypt.hashSync(this.password, 10);
+  }
 }

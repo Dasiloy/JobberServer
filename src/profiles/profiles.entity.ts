@@ -26,7 +26,7 @@ export class Profile extends BaseEntity {
     array: true,
     default: [],
   })
-  job_type: JobType[];
+  job_types: JobType[];
 
   @Column({
     type: 'enum',
@@ -34,7 +34,7 @@ export class Profile extends BaseEntity {
     array: true,
     default: [],
   })
-  job_location: JobLocation[];
+  job_locations: JobLocation[];
 
   @Column({
     type: 'enum',
