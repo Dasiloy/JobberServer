@@ -7,12 +7,15 @@ import { SetRouteMeta } from '@/addons/decorators/routes.decorator';
 import { RouteMeta } from '@/addons/enums/routes.enum';
 import { Request } from 'express';
 import { UpdateProfileDto } from './dtos/update_profile.dto';
+import { Serialize } from '@/addons/decorators/serialize.decorator';
+import { SingleUserDto } from '@/users/dtos/user.dto';
 
 @Controller('profiles')
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
   @SetRouteMeta(RouteMeta.IS_PROFILE_AUTH_REQUIRED)
+  @Serialize(SingleUserDto)
   @Post('')
   create(
     @Body() body: CreateProfileDto,
@@ -28,12 +31,14 @@ export class ProfilesController {
   }
 
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Serialize(SingleUserDto)
   @Post('/update')
   updateMyProfile(@Body() body: UpdateProfileDto, @CurrentUser() user: User) {
     return this.profilesService.updateMyProfile(body, user);
   }
 
   @Post('upload-resume')
+  @Serialize(SingleUserDto)
   async uploadResume() {
     // Implement the logic to upload a resume
   }

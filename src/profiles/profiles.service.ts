@@ -25,7 +25,7 @@ export class ProfilesService {
     { user: _user, nestSession, request }: CreateSessionDto,
   ) {
     const user = await this.usersService.findById(_user.id, {
-      relations: ['profile'],
+      relations: ['profile', 'followed_companies'],
     });
     if (user.profile) {
       throw new ConflictException(
@@ -51,7 +51,7 @@ export class ProfilesService {
 
   async updateMyProfile(data: UpdateProfileDto, _user: User) {
     const user = await this.usersService.findById(_user.id, {
-      relations: ['profile'],
+      relations: ['profile', 'followed_companies'],
     });
     if (!user.profile) {
       throw new NotFoundException('User does not have a profile.');

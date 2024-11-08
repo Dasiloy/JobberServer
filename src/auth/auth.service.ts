@@ -20,7 +20,6 @@ import { LogoutDto } from './dtos/logout.dto';
 import { UtilsService } from '@/auth/utils.service';
 import { LoginDto } from './dtos/login.dto';
 import { ForgotPasswordDto } from './dtos/forgot_password.dto';
-import { VerifyCodeDto } from './dtos/verify_code.dto';
 import { ResetPasswordDto } from './dtos/reset_password.dto';
 import { ChangePasswordDto } from './dtos/change_password.dto';
 
@@ -166,7 +165,6 @@ export class AuthService {
       user.email_token = otpCode;
       user.email_token_expired_at = this.utilsService.createExpiryDate(5);
       await this.userService.saveUser(user);
-
       //! 6. use event to send email verification token to user
 
       return {
@@ -177,7 +175,6 @@ export class AuthService {
           'User registered successfully. Please verify your email address.',
       };
     } catch (error: any) {
-      console.log(error.code);
       let message = error.message;
       if (error.code === '23505') {
         message = 'Email or phone number  already exists.';
@@ -367,7 +364,6 @@ export class AuthService {
       await this.userService.saveUser(user);
       response.token = otpCode; //! we will remove this later on
       response.access_token = this.createOtpToken(user);
-
       //! event to send code to email and phone number
     }
 
@@ -406,7 +402,7 @@ export class AuthService {
 
     return {
       access_token: this.createPasswordToken(user),
-      message: 'Password reset successfully.',
+      message: 'Token verified successfully',
     };
   }
 
@@ -443,7 +439,7 @@ export class AuthService {
   }
 
   async GetLoggedInUser(user: User) {
-    const full_user = this.userService.findById(user.id, {
+    const full_user = await this.userService.findById(user.id, {
       relations: ['followed_companies', 'profile'],
     });
     return {

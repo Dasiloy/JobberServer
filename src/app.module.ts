@@ -12,7 +12,7 @@ import { WorkHistoriesModule } from './work_histories/work_histories.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from './logger/logger.module';
-import { APP_PIPE } from '@nestjs/core';
+import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import * as morgan from 'morgan';
@@ -30,6 +30,7 @@ import { RefreshToken } from './auth/refresh_token.entity';
 import { WorkHistory } from './work_histories/work_histories.entity';
 import { Notification } from './notifications/notifications.entity';
 import { JobApplicationTimeline } from './job_applications/job_applications_timeline.entity';
+import { SerializeInterceptor } from './addons/interceptors/serialize.interceptor';
 const cookieSession = require('cookie-session');
 
 @Module({
@@ -123,6 +124,10 @@ const cookieSession = require('cookie-session');
       useValue: new ValidationPipe({
         whitelist: true,
       }),
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: SerializeInterceptor,
     },
   ],
 })

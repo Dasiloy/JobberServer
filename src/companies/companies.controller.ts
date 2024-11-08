@@ -1,10 +1,12 @@
-import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { SetRouteMeta } from '@/addons/decorators/routes.decorator';
 import { RouteMeta } from '@/addons/enums/routes.enum';
 import { CurrentUser } from '@/addons/decorators/current_user.decorator';
 import { User } from '@/users/users.entity';
 import { FollowCompaniesDto } from './dtos/followcompany.dto';
+import { Serialize } from '@/addons/decorators/serialize.decorator';
+import { CompanyDto, SingleCompanyDto } from './dtos/company.dto';
 
 @Controller('companies')
 export class CompaniesController {
@@ -28,8 +30,16 @@ export class CompaniesController {
   }
 
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Serialize(CompanyDto)
   @Get('')
-  async getAllCompanies() {
+  getAllCompanies() {
     return this.companiesService.getCompanies();
+  }
+
+  @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Serialize(SingleCompanyDto)
+  @Get('/:id')
+  getCompany(@Param('id') id: string) {
+    return this.companiesService.getCompany(id);
   }
 }

@@ -19,6 +19,8 @@ import { LoginDto } from './dtos/login.dto';
 import { ForgotPasswordDto } from './dtos/forgot_password.dto';
 import { ResetPasswordDto } from './dtos/reset_password.dto';
 import { ChangePasswordDto } from './dtos/change_password.dto';
+import { Serialize } from '@/addons/decorators/serialize.decorator';
+import { SingleUserDto } from '@/users/dtos/user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -59,6 +61,7 @@ export class AuthController {
   }
 
   @SetRouteMeta(RouteMeta.IS_PUBLIC)
+  @Serialize(SingleUserDto)
   @HttpCode(200)
   @Post('/login')
   login(
@@ -83,7 +86,7 @@ export class AuthController {
   @HttpCode(200)
   @Post('/resend-password-token')
   resendPasswordVerificationToken(@CurrentUser() user: User) {
-    return this.authService.resendPhoneVerificationToken(user);
+    return this.authService.resendPasswordToken(user);
   }
 
   @SetRouteMeta(RouteMeta.IS_OTP_REQUIRED)
@@ -122,6 +125,7 @@ export class AuthController {
   }
 
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Serialize(SingleUserDto)
   @HttpCode(200)
   @Get('/me')
   getLoggedInUser(@CurrentUser() user: User) {

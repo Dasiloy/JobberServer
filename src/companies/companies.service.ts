@@ -18,6 +18,22 @@ export class CompaniesService {
     };
   }
 
+  async getCompany(id: string) {
+    const company = await this.repository.findOne({
+      where: { id },
+      relations: {
+        followers: true,
+        jobs: true,
+        employments: true,
+      },
+    });
+
+    return {
+      message: 'Companies retrieved successfully',
+      data: company,
+    };
+  }
+
   loadCompanies(data: any) {
     return this.repository.insert(data);
   }
