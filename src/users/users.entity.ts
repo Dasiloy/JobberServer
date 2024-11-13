@@ -1,10 +1,24 @@
-import { Column, Entity, JoinColumn, ManyToMany, OneToOne } from 'typeorm';
+import {
+  AfterLoad,
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToMany,
+  OneToOne,
+} from 'typeorm';
 import { Role } from './users.enum';
 import { Profile } from '@/profiles/profiles.entity';
 import { Company } from '@/companies/companies.entity';
 import { BaseEntity } from '@/base_entity';
+import * as bcrypt from 'bcrypt';
 
 @Entity()
+@Index(['country_code', 'phone_number'], {
+  unique: true,
+})
 export class User extends BaseEntity {
   @Column('varchar', {
     length: 255,
@@ -35,11 +49,30 @@ export class User extends BaseEntity {
   })
   email_verified_at: Date;
 
+  @Column('int', {
+    nullable: true,
+  })
+  email_token: number;
+
+  @Column('timestamp', {
+    nullable: true,
+  })
+  email_token_expired_at: Date;
+
   @Column('varchar', {
     nullable: false,
-    select: false,
   })
   password: string;
+
+  @Column('int', {
+    nullable: true,
+  })
+  password_reset_token: number;
+
+  @Column('timestamp', {
+    nullable: true,
+  })
+  password_reset_token_expired_at: Date;
 
   @Column('varchar', {
     length: 10,
@@ -63,10 +96,15 @@ export class User extends BaseEntity {
   })
   phone_number_verified_at: Date;
 
-  @Column('boolean', {
-    default: false,
+  @Column('int', {
+    nullable: true,
   })
-  id_verified: boolean;
+  phone_number_token: number;
+
+  @Column('timestamp', {
+    nullable: true,
+  })
+  phone_number_token_expired_at: Date;
 
   @Column('boolean', {
     default: true,
@@ -90,7 +128,9 @@ export class User extends BaseEntity {
   })
   role: Role;
 
-  @OneToOne(() => Profile, (profile) => profile.user, {
+  private current_password: string;
+
+  @OneToOne(() => Profile, {
     cascade: true,
   })
   @JoinColumn()
@@ -98,4 +138,26 @@ export class User extends BaseEntity {
 
   @ManyToMany(() => Company, (company) => company.followers)
   followed_companies: Company[];
+
+  comparePassword(password: string) {
+    return bcrypt.compareSync(password, this.password);
+  }
+
+  @AfterLoad()
+  loadCurrentPassword() {
+    this.current_password = this.password;
+  }
+
+  @BeforeUpdate()
+  hashPasswordOnPasswordChange() {
+    if (this.current_password !== this.password) {
+      this.password = bcrypt.hashSync(this.password, 10);
+    }
+    this.current_password = this.password;
+  }
+
+  @BeforeInsert()
+  hashPassword() {
+    this.password = bcrypt.hashSync(this.password, 10);
+  }
 }

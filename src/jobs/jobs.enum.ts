@@ -20,9 +20,9 @@ export enum JobExperience {
 
 export enum JobProfession {
   MARKETER = 'marketer',
-  UX_DESIGNER = 'ux_designer',
+  UX_DESIGNER = 'ux designer',
   ACCOUNTANT = 'accountant',
-  APP_DEVELOPER = 'app_developer',
+  APP_DEVELOPER = 'app developer',
   PRODUCT_MANAGER = 'product manager',
   SOFTWARE_ENGINEER = 'software engineer',
   GRAPHICS_DESIGNER = 'graphics designer',

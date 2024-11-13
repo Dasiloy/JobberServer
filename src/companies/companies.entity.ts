@@ -35,12 +35,11 @@ export class Company extends BaseEntity {
   })
   employees_count: number;
 
-  @ManyToMany(() => User, (user) => user.followed_companies)
-  @JoinTable({
-    name: 'followers',
-    joinColumns: [{ name: 'company_id' }],
-    inverseJoinColumns: [{ name: 'user_id' }],
+  @ManyToMany(() => User, (user) => user.followed_companies, {
+    cascade: true,
+    onDelete: 'CASCADE',
   })
+  @JoinTable()
   followers: User[];
 
   @OneToMany(() => Job, (job) => job.company)

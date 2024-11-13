@@ -13,8 +13,6 @@ export class PortfolioItem extends BaseEntity {
   @Column('varchar', { length: 255 })
   portfolio_item_url: string;
 
-  @ManyToOne(() => Portfolio, (portfolio) => portfolio.portfolio_items, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Portfolio, (portfolio) => portfolio.portfolio_items)
   portfolio: Portfolio;
 }

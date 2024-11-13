@@ -6,6 +6,7 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
+import { RefreshToken } from './refresh_token.entity';
 
 @Entity()
 export class Session {
@@ -17,17 +18,23 @@ export class Session {
   })
   ip: string;
 
+  @Column('boolean', {
+    default: true,
+  })
+  valid: boolean;
+
   @Column('text', {
     nullable: true,
   })
   user_agent: string;
 
-  @Column('date', {
-    nullable: false,
-  })
-  expired_at: Date;
-
   @OneToOne(() => User)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn()
   user: User;
+
+  @OneToOne(() => RefreshToken, (refresh_token) => refresh_token.session, {
+    cascade: true,
+  })
+  @JoinColumn()
+  refresh_token: RefreshToken;
 }

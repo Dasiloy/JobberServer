@@ -20,20 +20,12 @@ export class RefreshToken {
   })
   token_key: string;
 
-  @Column('boolean', {
-    default: true,
-  })
-  valid: boolean;
-
   @OneToOne(() => User)
-  @JoinColumn({
-    name: 'user_id',
-  })
+  @JoinColumn()
   user: User;
 
-  @OneToOne(() => Session)
-  @JoinColumn({
-    name: 'session_id',
+  @OneToOne(() => Session, (session) => session.refresh_token, {
+    onDelete: 'CASCADE',
   })
   session: Session;
 }
