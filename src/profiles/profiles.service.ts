@@ -11,6 +11,7 @@ import { CreateSessionDto } from '@/auth/dtos/create_seession.dto';
 import { UsersService } from '@/users/users.service';
 import { User } from '@/users/users.entity';
 import { UpdateProfileDto } from './dtos/update_profile.dto';
+import { UploadService } from '@/upload/upload.service';
 
 @Injectable()
 export class ProfilesService {
@@ -18,6 +19,7 @@ export class ProfilesService {
     @InjectRepository(Profile) private readonly repository: Repository<Profile>,
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
+    private readonly uploadService: UploadService,
   ) {}
 
   async createUserProfile(
@@ -62,6 +64,19 @@ export class ProfilesService {
     return {
       data: user,
       message: 'Profile updated successfully.',
+    };
+  }
+
+  async uploadResume(file: Express.Multer.File, user: User) {
+    const resume_url = await this.uploadService.uploadFile({
+      file,
+      user,
+      folder: 'resumes',
+    });
+
+    return {
+      data: resume_url,
+      message: 'Resume uploaded successfully.',
     };
   }
 }

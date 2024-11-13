@@ -11,7 +11,6 @@ import { JobApplicationsModule } from './job_applications/job_applications.modul
 import { WorkHistoriesModule } from './work_histories/work_histories.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { LoggerModule } from './logger/logger.module';
 import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
@@ -31,11 +30,14 @@ import { WorkHistory } from './work_histories/work_histories.entity';
 import { Notification } from './notifications/notifications.entity';
 import { JobApplicationTimeline } from './job_applications/job_applications_timeline.entity';
 import { SerializeInterceptor } from './addons/interceptors/serialize.interceptor';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { UploadModule } from './upload/upload.module';
+import { SmsModule } from './sms/sms.module';
+import { EmailModule } from './email/email.module';
 const cookieSession = require('cookie-session');
 
 @Module({
   imports: [
-    LoggerModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV}`,
@@ -56,16 +58,10 @@ const cookieSession = require('cookie-session');
         JWT_PROFILE_EXPIRATION: Joi.string().required(),
         JWT_PASSWORD_SECRET: Joi.string().required(),
         JWT_PASSWORD_EXPIRATION: Joi.string().required(),
-        // SMTP_ENABLED: Joi.boolean().default(false),
-        // SMTP_SECURE: Joi.boolean().default(false),
-        // SMTP_TLS_REQUIRED: Joi.boolean().default(false),
-        // SMTP_STARTTLS_REQUIRED: Joi.boolean().default(false),
-        // SMTP_HOST: Joi.string().required(),
-        // SMTP_PORT: Joi.number().default(587),
-        // SMTP_USERNAME: Joi.string().required(),
-        // SMTP_PASSWORD: Joi.string().required(),
-        // SMTP_FROM_EMAIL: Joi.string().required(),
-        // SMTP_FROM_NAME: Joi.string().required(),
+        AWS_ACCESS_KEY_ID: Joi.string().required(),
+        AWS_SECRET_ACCESS_KEY: Joi.string().required(),
+        AWS_REGION: Joi.string().required(),
+        AWS_IDENTITY: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRootAsync({
@@ -94,7 +90,6 @@ const cookieSession = require('cookie-session');
             JobApplicationTimeline,
           ],
           synchronize: !!configService.get<boolean>('DB_SYNC'),
-          // we need to understand these better
           autoLoadEntities: true,
           migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
           seeds: [__dirname + '/seeds/**/*{.ts,.js}'],
@@ -104,6 +99,16 @@ const cookieSession = require('cookie-session');
           },
         };
       },
+    }),
+    EventEmitterModule.forRoot({
+      global: true,
+      wildcard: false,
+      delimiter: '.',
+      newListener: true,
+      removeListener: true,
+      maxListeners: 10,
+      verboseMemoryLeak: false,
+      ignoreErrors: false,
     }),
     // main modules
     UsersModule,
@@ -115,6 +120,9 @@ const cookieSession = require('cookie-session');
     JobApplicationsModule,
     WorkHistoriesModule,
     NotificationsModule,
+    UploadModule,
+    SmsModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [

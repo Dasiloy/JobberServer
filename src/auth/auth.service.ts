@@ -22,6 +22,9 @@ import { LoginDto } from './dtos/login.dto';
 import { ForgotPasswordDto } from './dtos/forgot_password.dto';
 import { ResetPasswordDto } from './dtos/reset_password.dto';
 import { ChangePasswordDto } from './dtos/change_password.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { AuthEvents } from './events';
+import { SendEmailOtp, SendSmsOtp } from './events/otp.events';
 
 @Injectable()
 export class AuthService {
@@ -33,6 +36,7 @@ export class AuthService {
     private readonly sessionRepository: Repository<Session>,
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepository: Repository<RefreshToken>,
+    private readonly eventemitter: EventEmitter2,
   ) {}
 
   private createAccessToken(user: User) {
@@ -157,19 +161,21 @@ export class AuthService {
     };
   }
 
-  //784885
   async registerUser(data: RegisterUserDto) {
     try {
       const user = this.userService.createUser(data);
-      const otpCode = this.utilsService.generateOtpCode();
-      user.email_token = otpCode;
+      user.email_token = this.utilsService.generateOtpCode();
       user.email_token_expired_at = this.utilsService.createExpiryDate(5);
       await this.userService.saveUser(user);
-      //! 6. use event to send email verification token to user
+
+      const payload: SendEmailOtp = {
+        user,
+        Subject: 'Email Verification',
+        Body: `Your verification code is ${user.email_token}`,
+      };
+      this.eventemitter.emit(AuthEvents.SEND_EMAIL_OTP, payload);
 
       return {
-        //! we will remove the token field later
-        token: user.email_token,
         access_token: this.createOtpToken(user),
         message:
           'User registered successfully. Please verify your email address.',
@@ -188,19 +194,19 @@ export class AuthService {
       throw new BadRequestException('Email is already verified.');
     }
 
-    let otpCode = user.email_token;
     if (this.userService.checkTokenExpiry(user, 'email')) {
-      otpCode = this.utilsService.generateOtpCode();
-      user.email_token = otpCode;
+      user.email_token = this.utilsService.generateOtpCode();
       user.email_token_expired_at = this.utilsService.createExpiryDate(5);
       await this.userService.saveUser(user);
     }
-
-    //! 4. use event to send email verification token to user
+    const payload: SendEmailOtp = {
+      user,
+      Subject: 'Email Verification',
+      Body: `Your verification code is ${user.email_token}`,
+    };
+    this.eventemitter.emit(AuthEvents.SEND_EMAIL_OTP, payload);
 
     return {
-      //! we will remove the token field later
-      token: user.email_token,
       message: 'Email verification token sent again.',
     };
   }
@@ -223,16 +229,18 @@ export class AuthService {
     user.email_verified = true;
     user.email_verified_at = new Date();
 
-    const otpCode = this.utilsService.generateOtpCode();
-    user.phone_number_token = otpCode;
+    user.phone_number_token = this.utilsService.generateOtpCode();
     user.phone_number_token_expired_at = this.utilsService.createExpiryDate(5);
     await this.userService.saveUser(user);
 
-    //! 6. use event to send otp code to user
+    const payload: SendSmsOtp = {
+      user,
+      Subject: 'Phone Verification',
+      Message: `Your verification code is ${user.phone_number_token}`,
+    };
+    this.eventemitter.emit(AuthEvents.SEND_PHONE_OTP, payload);
 
     return {
-      //! we will remove the token field later
-      token: user.phone_number_token,
       message: 'Email verified successfully.',
     };
   }
@@ -242,19 +250,20 @@ export class AuthService {
       throw new BadRequestException('Phone number is already verified.');
     }
 
-    let otpCode = user.phone_number_token;
     if (this.userService.checkTokenExpiry(user, 'phone')) {
-      otpCode = this.utilsService.generateOtpCode();
-      user.phone_number_token = otpCode;
+      user.phone_number_token = this.utilsService.generateOtpCode();
       user.phone_number_token_expired_at =
         this.utilsService.createExpiryDate(5);
       await this.userService.saveUser(user);
     }
+    const payload: SendSmsOtp = {
+      user,
+      Subject: 'Phone Verification',
+      Message: `Your verification code is ${user.phone_number_token}`,
+    };
+    this.eventemitter.emit(AuthEvents.SEND_PHONE_OTP, payload);
 
-    //! 4. use event to send phone verification token to user
     return {
-      //! we will remove the token field later
-      token: user.phone_number_token,
       message: 'Phone verification token sent again.',
     };
   }
@@ -355,34 +364,46 @@ export class AuthService {
   async forgotPassword(body: ForgotPasswordDto) {
     const user = await this.userService.findByEmailOrPhone(body.query);
 
-    const response: any = { message: 'Otp code sent to email and phone.' };
     if (user) {
-      const otpCode = this.utilsService.generateOtpCode();
-      user.password_reset_token = otpCode;
+      user.password_reset_token = this.utilsService.generateOtpCode();
       user.password_reset_token_expired_at =
         this.utilsService.createExpiryDate(5);
       await this.userService.saveUser(user);
-      response.token = otpCode; //! we will remove this later on
-      response.access_token = this.createOtpToken(user);
-      //! event to send code to email and phone number
+
+      const payload: SendEmailOtp | SendSmsOtp = {
+        user,
+        Subject: 'Password Reset',
+        Body: `Your password reset code is ${user.password_reset_token}`,
+        Message: `Your password reset code is ${user.password_reset_token}`,
+      };
+      this.eventemitter.emit(AuthEvents.SEND_EMAIL_OTP, payload);
+      this.eventemitter.emit(AuthEvents.SEND_PHONE_OTP, payload);
     }
 
-    return response;
+    return {
+      message: 'Otp code sent to email and phone.',
+      access_token: user ? this.createOtpToken(user) : '',
+    };
   }
 
   async resendPasswordToken(user: User) {
-    let otpCode = user.password_reset_token;
     if (this.userService.checkTokenExpiry(user, 'password')) {
-      otpCode = this.utilsService.generateOtpCode();
-      user.password_reset_token = otpCode;
+      user.password_reset_token = this.utilsService.generateOtpCode();
       user.password_reset_token_expired_at =
         this.utilsService.createExpiryDate(5);
       await this.userService.saveUser(user);
     }
-    //! event to send code to email and phone number
+
+    const payload: SendEmailOtp | SendSmsOtp = {
+      user,
+      Subject: 'Password Reset',
+      Body: `Your password reset code is ${user.password_reset_token}`,
+      Message: `Your password reset code is ${user.password_reset_token}`,
+    };
+    this.eventemitter.emit(AuthEvents.SEND_EMAIL_OTP, payload);
+    this.eventemitter.emit(AuthEvents.SEND_PHONE_OTP, payload);
 
     return {
-      token: otpCode,
       message: 'Password reset token sent again.',
     };
   }

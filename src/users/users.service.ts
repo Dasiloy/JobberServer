@@ -13,7 +13,6 @@ export class UsersService {
     switch (type) {
       case 'email':
         return user.email_token_expired_at?.getTime() < Date.now();
-
       case 'phone':
         return user.phone_number_token_expired_at?.getTime() < Date.now();
       case 'password':

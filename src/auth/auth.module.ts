@@ -10,6 +10,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Session } from './session.entity';
 import { RefreshToken } from './refresh_token.entity';
 import { UtilsService } from './utils.service';
+import { OtpEventListener } from './listeners/otp.listner';
+import { SmsModule } from '@/sms/sms.module';
+import { EmailModule } from '@/email/email.module';
 
 @Global()
 @Module({
@@ -17,11 +20,14 @@ import { UtilsService } from './utils.service';
     TypeOrmModule.forFeature([Session, RefreshToken]),
     JwtModule.register({}),
     UsersModule,
+    SmsModule,
+    EmailModule,
   ],
   controllers: [AuthController],
   providers: [
     AuthService,
     UtilsService,
+    OtpEventListener,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
