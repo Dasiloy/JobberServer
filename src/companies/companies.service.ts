@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from './companies.entity';
-import { In, Repository } from 'typeorm';
+import { FindOneOptions, In, Repository } from 'typeorm';
 import { User } from '@/users/users.entity';
 
 @Injectable()
@@ -9,6 +9,13 @@ export class CompaniesService {
   constructor(
     @InjectRepository(Company) private repository: Repository<Company>,
   ) {}
+
+  findById(id: string, options: Omit<FindOneOptions<Company>, 'where'> = {}) {
+    return this.repository.findOne({
+      where: { id },
+      ...options,
+    });
+  }
 
   async getCompanies() {
     const companies = await this.repository.find();
@@ -21,11 +28,7 @@ export class CompaniesService {
   async getCompany(id: string) {
     const company = await this.repository.findOne({
       where: { id },
-      relations: {
-        followers: true,
-        jobs: true,
-        employments: true,
-      },
+      relations: ['followers', 'jobs', 'employments'],
     });
 
     return {

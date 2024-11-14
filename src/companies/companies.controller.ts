@@ -19,8 +19,9 @@ export class CompaniesController {
     return this.companiesService.loadCompanies(data?.companies);
   }
 
-  @HttpCode(200)
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Serialize(CompanyDto)
+  @HttpCode(200)
   @Post('/follow')
   async followCompanies(
     @CurrentUser() user: User,

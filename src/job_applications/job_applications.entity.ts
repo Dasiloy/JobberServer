@@ -17,7 +17,9 @@ export class JobApplication extends BaseEntity {
   @Column('text')
   cover_letter: string;
 
-  @ManyToOne(() => Profile, (profile) => profile.job_applications)
+  @ManyToOne(() => Profile, (profile) => profile.job_applications, {
+    eager: true,
+  })
   profile: Profile;
 
   @ManyToOne(() => Job, (job) => job.applications)

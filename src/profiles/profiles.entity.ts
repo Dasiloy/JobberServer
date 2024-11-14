@@ -10,6 +10,7 @@ import { BaseEntity } from '@/base_entity';
 import { JobApplication } from '@/job_applications/job_applications.entity';
 import { WorkHistory } from '@/work_histories/work_histories.entity';
 import { Portfolio } from '@/portfolios/portfolios.entity';
+import { User } from '@/users/users.entity';
 
 @Entity()
 export class Profile extends BaseEntity {
@@ -54,6 +55,9 @@ export class Profile extends BaseEntity {
   })
   @JoinColumn()
   portfolio: Portfolio;
+
+  @OneToOne(() => User, (user) => user.profile)
+  user: User;
 
   @OneToMany(() => Education, (education) => education.profile, {
     cascade: true,

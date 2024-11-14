@@ -130,7 +130,7 @@ export class User extends BaseEntity {
 
   private current_password: string;
 
-  @OneToOne(() => Profile, {
+  @OneToOne(() => Profile, (profile) => profile.user, {
     cascade: true,
   })
   @JoinColumn()
