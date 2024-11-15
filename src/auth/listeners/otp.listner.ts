@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { AuthEvents } from '../events';
-import { SmsService } from '@/sms/sms.service';
-import { EmailService } from '@/email/email.service';
 import { SendEmailOtp, SendSmsOtp } from '../events/otp.events';
+import { SmsService } from '@/global/sms.service';
+import { EmailService } from '@/global/email.service';
 
 @Injectable()
 export class OtpEventListener {

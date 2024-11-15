@@ -5,13 +5,14 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from './profiles.entity';
-import { Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { AuthService } from '@/auth/auth.service';
 import { CreateSessionDto } from '@/auth/dtos/create_seession.dto';
 import { UsersService } from '@/users/users.service';
 import { User } from '@/users/users.entity';
 import { UpdateProfileDto } from './dtos/update_profile.dto';
-import { UploadService } from '@/upload/upload.service';
+import { UploadService } from '@/global/upload.service';
+import { ServerResponse } from '@/addons/interfaces/response.interface';
 
 @Injectable()
 export class ProfilesService {
@@ -22,14 +23,29 @@ export class ProfilesService {
     private readonly uploadService: UploadService,
   ) {}
 
+  findById(id: string, options: Omit<FindOneOptions<Profile>, 'where'> = {}) {
+    return this.repository.findOne({
+      where: { id },
+      ...options,
+    });
+  }
+
+  findByUserId(user_id: string) {
+    return this.repository.findOne({
+      where: {
+        user: {
+          id: user_id,
+        },
+      },
+    });
+  }
+
   async createUserProfile(
     data: Partial<Profile>,
-    { user: _user, nestSession, request }: CreateSessionDto,
-  ) {
-    const user = await this.usersService.findById(_user.id, {
-      relations: ['profile', 'followed_companies'],
-    });
-    if (user.profile) {
+    { user, nestSession, request }: CreateSessionDto,
+  ): ServerResponse<User> {
+    let profile = await this.findByUserId(user.id);
+    if (profile) {
       throw new ConflictException(
         'You already have a profile. Update your profile instead.',
       );
@@ -40,7 +56,7 @@ export class ProfilesService {
       nestSession,
       request,
     });
-    const profile = this.repository.create(data);
+    profile = this.repository.create(data);
     user.profile = profile;
     await this.usersService.saveUser(user);
 
@@ -51,14 +67,15 @@ export class ProfilesService {
     };
   }
 
-  async updateMyProfile(data: UpdateProfileDto, _user: User) {
-    const user = await this.usersService.findById(_user.id, {
-      relations: ['profile', 'followed_companies'],
-    });
-    if (!user.profile) {
+  async updateMyProfile(
+    data: UpdateProfileDto,
+    user: User,
+  ): ServerResponse<User> {
+    const profile = await this.findByUserId(user.id);
+    if (!profile) {
       throw new NotFoundException('User does not have a profile.');
     }
-    user.profile = Object.assign(user.profile, data);
+    user.profile = Object.assign(profile, data);
     await this.usersService.saveUser(user);
 
     return {
@@ -67,7 +84,10 @@ export class ProfilesService {
     };
   }
 
-  async uploadResume(file: Express.Multer.File, user: User) {
+  async uploadResume(
+    file: Express.Multer.File,
+    user: User,
+  ): ServerResponse<string> {
     const resume_url = await this.uploadService.uploadFile({
       file,
       user,

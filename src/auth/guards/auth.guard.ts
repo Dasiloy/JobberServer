@@ -10,7 +10,7 @@ import { Reflector } from '@nestjs/core';
 import { UsersService } from '@/users/users.service';
 import { ConfigService } from '@nestjs/config';
 import { TokenType } from '../auth.enum';
-import { UtilsService } from '@/auth/utils.service';
+import { UtilsService } from '@/global/utils.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

@@ -1,12 +1,5 @@
 import { Expose, Transform } from 'class-transformer';
 import { Role } from '@/users/users.enum';
-import {
-  JobExperience,
-  JobLocation,
-  JobProfession,
-  JobType,
-} from '@/jobs/jobs.enum';
-import { Company } from '@/companies/companies.entity';
 
 export class UserDto {
   @Expose()
@@ -52,45 +45,4 @@ export class UserDto {
 
   @Expose()
   role: Role;
-}
-
-export class SingleUserDto extends UserDto {
-  @Expose()
-  @Transform(({ obj }) => obj.profile?.id || null)
-  profile_id: string;
-
-  @Expose()
-  @Transform(({ obj }) => obj.profile?.job_types || [])
-  job_types: JobType[];
-
-  @Expose()
-  @Transform(({ obj }) => obj.profile?.job_profession || null)
-  job_profession: JobProfession;
-
-  @Expose()
-  @Transform(({ obj }) => obj.profile?.resume_url || null)
-  resume_url: string;
-
-  @Expose()
-  @Transform(({ obj }) => obj.profile?.job_locations || [])
-  job_locations: JobLocation[];
-
-  @Expose()
-  @Transform(({ obj }) => obj.profile?.job_experiences || [])
-  job_experiences: JobExperience[];
-
-  @Expose()
-  @Transform(({ obj }) => obj.followed_companies?.length || 0)
-  companies_followed_count: number;
-
-  @Expose()
-  @Transform(
-    ({ obj }) =>
-      obj.followed_companies?.map((c: Company) => ({
-        id: c.id,
-        name: c.name,
-        logo: c.logo,
-      })) || [],
-  )
-  companies_followed: Company[];
 }

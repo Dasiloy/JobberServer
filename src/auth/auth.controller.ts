@@ -20,7 +20,7 @@ import { ForgotPasswordDto } from './dtos/forgot_password.dto';
 import { ResetPasswordDto } from './dtos/reset_password.dto';
 import { ChangePasswordDto } from './dtos/change_password.dto';
 import { Serialize } from '@/addons/decorators/serialize.decorator';
-import { SingleUserDto } from '@/users/dtos/user.dto';
+import { SingleUserDto } from '@/users/dtos/single.user.dto';
 
 @Controller('auth')
 export class AuthController {

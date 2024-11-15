@@ -1,4 +1,12 @@
-import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { SetRouteMeta } from '@/addons/decorators/routes.decorator';
 import { RouteMeta } from '@/addons/enums/routes.enum';
@@ -6,7 +14,10 @@ import { CurrentUser } from '@/addons/decorators/current_user.decorator';
 import { User } from '@/users/users.entity';
 import { FollowCompaniesDto } from './dtos/followcompany.dto';
 import { Serialize } from '@/addons/decorators/serialize.decorator';
-import { CompanyDto, SingleCompanyDto } from './dtos/company.dto';
+import { CompanyDto } from './dtos/company.dto';
+import { PaginationDto } from '@/global/dtos/pagination.dto';
+import { SingleCompanyDto } from './dtos/single.company.dto';
+import { FollowCompanyDto } from './dtos/follow.company.dto';
 
 @Controller('companies')
 export class CompaniesController {
@@ -15,25 +26,23 @@ export class CompaniesController {
   @HttpCode(201)
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
   @Post('/load')
-  async loadCompanies(@Body() data: any) {
+  loadCompanies(@Body() data: any) {
     return this.companiesService.loadCompanies(data?.companies);
   }
 
-  @HttpCode(200)
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Serialize(FollowCompanyDto)
+  @HttpCode(200)
   @Post('/follow')
-  async followCompanies(
-    @CurrentUser() user: User,
-    @Body() body: FollowCompaniesDto,
-  ) {
+  followCompanies(@CurrentUser() user: User, @Body() body: FollowCompaniesDto) {
     return this.companiesService.followCompanies(user, body.company_ids);
   }
 
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
   @Serialize(CompanyDto)
   @Get('')
-  getAllCompanies() {
-    return this.companiesService.getCompanies();
+  getAllCompanies(@Query() query: PaginationDto) {
+    return this.companiesService.getCompanies(query);
   }
 
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)

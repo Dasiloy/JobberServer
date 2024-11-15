@@ -15,10 +15,10 @@ import { SetRouteMeta } from '@/addons/decorators/routes.decorator';
 import { RouteMeta } from '@/addons/enums/routes.enum';
 import { UpdateProfileDto } from './dtos/update_profile.dto';
 import { Serialize } from '@/addons/decorators/serialize.decorator';
-import { SingleUserDto } from '@/users/dtos/user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileTypes } from '@/addons/constants/file.constants';
 import { UploadFileWithValidators } from '@/addons/decorators/file.decorator';
+import { SingleUserDto } from '@/users/dtos/single.user.dto';
 
 @Controller('profiles')
 export class ProfilesController {

@@ -12,9 +12,11 @@ export class JobApplication extends BaseEntity {
     default: JobApplicationStatus.APPLIED,
     nullable: false,
   })
-  status: JobApplication;
+  status: JobApplicationStatus;
 
-  @Column('text')
+  @Column('text', {
+    nullable: true,
+  })
   cover_letter: string;
 
   @ManyToOne(() => Profile, (profile) => profile.job_applications)
@@ -26,6 +28,7 @@ export class JobApplication extends BaseEntity {
   @OneToMany(
     () => JobApplicationTimeline,
     (timeline) => timeline.job_application,
+    { cascade: true },
   )
   timeline: JobApplicationTimeline[];
 }

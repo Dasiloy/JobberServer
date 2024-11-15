@@ -3,7 +3,6 @@ import {
   JobExperience,
   JobLocation,
   JobPayFrequency,
-  JobProfession,
   JobStatus,
   JobType,
 } from './jobs.enum';
@@ -22,6 +21,7 @@ export class Job extends BaseEntity {
   @Column('enum', {
     enum: JobStatus,
     nullable: false,
+    default: JobStatus.OPEN,
   })
   status: JobStatus;
 
@@ -31,51 +31,54 @@ export class Job extends BaseEntity {
   pay: number;
 
   @Column('enum', {
-    enum: JobExperience,
+    enum: JobPayFrequency,
     nullable: false,
-    array: true,
   })
   pay_frequency: JobPayFrequency;
 
-  @Column('text')
+  @Column('text', {
+    nullable: true,
+  })
   about: string;
 
-  @Column('text')
+  @Column('text', {
+    nullable: true,
+  })
   description: string;
 
-  @Column('text')
-  requirements: string;
-
-  @Column({
-    type: 'enum',
-    enum: JobProfession,
-    nullable: false,
+  @Column('text', {
+    nullable: true,
   })
-  profession: JobProfession;
+  requirements: string;
 
   @Column({
     type: 'enum',
     enum: JobType,
     array: true,
   })
-  type: JobType;
+  types: JobType[];
 
   @Column({
     type: 'enum',
+    array: true,
     enum: JobLocation,
   })
-  location: JobLocation;
+  locations: JobLocation[];
 
   @Column({
     type: 'enum',
     enum: JobExperience,
     array: true,
   })
-  experiences: JobExperience;
+  experiences: JobExperience[];
 
-  @ManyToOne(() => Company, (company) => company.jobs, { eager: true })
+  @ManyToOne(() => Company, (company) => company.jobs, {
+    eager: true,
+  })
   company: Company;
 
-  @OneToMany(() => JobApplication, (job_application) => job_application.job)
+  @OneToMany(() => JobApplication, (job_application) => job_application.job, {
+    cascade: true,
+  })
   applications: JobApplication[];
 }
