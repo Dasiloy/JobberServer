@@ -36,13 +36,19 @@ export class Job extends BaseEntity {
   })
   pay_frequency: JobPayFrequency;
 
-  @Column('text')
+  @Column('text', {
+    nullable: true,
+  })
   about: string;
 
-  @Column('text')
+  @Column('text', {
+    nullable: true,
+  })
   description: string;
 
-  @Column('text')
+  @Column('text', {
+    nullable: true,
+  })
   requirements: string;
 
   @Column({
@@ -71,6 +77,8 @@ export class Job extends BaseEntity {
   })
   company: Company;
 
-  @OneToMany(() => JobApplication, (job_application) => job_application.job)
+  @OneToMany(() => JobApplication, (job_application) => job_application.job, {
+    cascade: true,
+  })
   applications: JobApplication[];
 }

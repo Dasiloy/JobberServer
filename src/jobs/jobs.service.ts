@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { Job } from './jobs.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateJobDto } from './dtos/create.job.dto';
@@ -7,8 +7,9 @@ import { ServerResponse } from '@/addons/interfaces/response.interface';
 import { CompaniesService } from '@/companies/companies.service';
 import { User } from '@/users/users.entity';
 import { UsersService } from '@/users/users.service';
-import { PaginatorService } from '@/addons/services/pagination.service';
-import { PaginationDto } from '@/addons/interfaces/paginator.interface';
+import { QueryJobDto } from './dtos/query,job.dto';
+import { PaginatorService } from '@/global/pagination.service';
+import { PaginationDto } from '@/global/dtos/pagination.dto';
 
 @Injectable()
 export class JobsService {
@@ -18,6 +19,13 @@ export class JobsService {
     private readonly paginatorService: PaginatorService,
     private readonly companyService: CompaniesService,
   ) {}
+
+  async FindById(id: string, options: Omit<FindOneOptions<Job>, 'where'> = {}) {
+    return this.repository.findOne({
+      where: { id },
+      ...options,
+    });
+  }
 
   async createJob(job: CreateJobDto): ServerResponse<Job> {
     const company = await this.companyService.findById(job.company_id);
@@ -45,6 +53,89 @@ export class JobsService {
 
     return {
       message: 'Latest jobs fetched successfully',
+      data: jobs,
+    };
+  }
+
+  async getJobs({
+    title,
+    pay_range,
+    job_types,
+    statuses,
+    locations,
+    experiences,
+    pay_frequencies,
+    company_ids,
+    page,
+    limit,
+  }: QueryJobDto) {
+    const query = this.repository
+      .createQueryBuilder('job')
+      .leftJoinAndSelect('job.company', 'company');
+
+    if (title) {
+      query.andWhere('job.title ILIKE :title', {
+        title: `%${title}%`,
+      });
+    }
+
+    if (pay_range) {
+      query.andWhere('job.pay BETWEEN :min_pay AND :max_pay', {
+        min_pay: pay_range[0],
+        max_pay: pay_range[1],
+      });
+    }
+
+    if (job_types) {
+      query.andWhere('job.types && :types', {
+        types: job_types,
+      });
+    }
+
+    if (statuses) {
+      query.andWhere('job.status IN (:...statuses)', {
+        statuses,
+      });
+    }
+
+    if (locations) {
+      query.andWhere('job.locations && :locations', {
+        locations,
+      });
+    }
+
+    if (experiences) {
+      query.andWhere('job.experiences && :experiences', {
+        experiences,
+      });
+    }
+
+    if (pay_frequencies) {
+      query.andWhere('job.pay_frequency IN (:...pay_frequencies)', {
+        pay_frequencies,
+      });
+    }
+
+    if (company_ids) {
+      query.andWhere('company.id IN (:...company_ids)', {
+        company_ids,
+      });
+    }
+
+    const [jobs, count] = await query
+      .orderBy('job.created_at', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      message: 'Recommended jobs fetched successfully',
+      pagination: this.paginatorService.paginate({
+        count,
+        limit,
+        page,
+        page_size: jobs.length,
+      }),
       data: jobs,
     };
   }
@@ -92,6 +183,24 @@ export class JobsService {
         page_size: jobs.length,
       }),
       data: jobs,
+    };
+  }
+
+  async getJob(id: string): ServerResponse<Job> {
+    const job = await this.FindById(id, {
+      relations: {
+        company: true,
+        applications: true,
+      },
+    });
+
+    if (!job) {
+      throw new NotFoundException('job not found');
+    }
+
+    return {
+      message: 'Job fetched successfully',
+      data: job,
     };
   }
 }

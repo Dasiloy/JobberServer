@@ -1,7 +1,7 @@
 import { Address } from '@/addons/interfaces/address.interface';
 import { Expose, Transform } from 'class-transformer';
 
-export class CompanyDto {
+export class FollowCompanyDto {
   @Expose()
   id: string;
 
@@ -27,14 +27,6 @@ export class CompanyDto {
   employees_count: number;
 
   @Expose()
-  @Transform(({ value }) => parseInt(value))
+  @Transform(({ obj }) => obj.followers.length)
   followers_count: number;
-
-  @Expose()
-  @Transform(({ value }) => parseInt(value))
-  jobs_count: number;
-
-  @Expose()
-  @Transform(({ value }) => parseInt(value))
-  employments_count: number;
 }

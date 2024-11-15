@@ -22,7 +22,7 @@ export class JobApplicationTimeline extends BaseEntity {
   })
   status: JobApplicationTimelineStatus;
 
-  @Column('text', { nullable: true })
+  @Column('text', { nullable: false })
   notes: string;
 
   @ManyToOne(() => JobApplication, (application) => application.timeline)

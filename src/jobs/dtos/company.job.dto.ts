@@ -1,14 +1,9 @@
 import { JobStatus } from 'aws-sdk/clients/batch';
-import { Expose, Type } from 'class-transformer';
-import { JobType } from 'aws-sdk/clients/importexport';
-import { Company } from '@/companies/companies.entity';
-import { JobCompanyDto } from '@/companies/dtos/job.company.dto';
+import { Expose } from 'class-transformer';
 import { JobExperience, JobLocation, JobPayFrequency } from '../jobs.enum';
+import { JobType } from 'aws-sdk/clients/importexport';
 
-export class JobDto {
-  @Expose()
-  id: string;
-
+export class CompanyJobDto {
   @Expose()
   title: string;
 
@@ -29,8 +24,4 @@ export class JobDto {
 
   @Expose()
   experiences: JobExperience[];
-
-  @Expose()
-  @Type(() => JobCompanyDto)
-  company: Company;
 }

@@ -7,7 +7,9 @@ import { JobDto } from './dtos/Job.dto';
 import { JobsService } from './jobs.service';
 import { CurrentUser } from '@/addons/decorators/current_user.decorator';
 import { User } from '@/users/users.entity';
-import { PaginationDto } from '@/addons/interfaces/paginator.interface';
+import { QueryJobDto } from './dtos/query,job.dto';
+import { PaginationDto } from '../global/dtos/pagination.dto';
+import { SingleJobDto } from './dtos/single.job.dto';
 
 @Controller('jobs')
 export class JobsController {
@@ -20,8 +22,12 @@ export class JobsController {
     return this.jobsService.createJob(body);
   }
 
+  @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Serialize(JobDto)
   @Get('')
-  getJobs() {}
+  getJobs(@Query() query: QueryJobDto) {
+    return this.jobsService.getJobs(query);
+  }
 
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
   @Serialize(JobDto)
@@ -38,9 +44,9 @@ export class JobsController {
   }
 
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
-  @Serialize(JobDto)
+  @Serialize(SingleJobDto)
   @Get(':id')
   getJobB(@Param('id') id: string) {
-    return id;
+    return this.jobsService.getJob(id);
   }
 }

@@ -1,5 +1,8 @@
+import {
+  Paginate,
+  PaginatePayload,
+} from '@/addons/interfaces/paginator.interface';
 import { Injectable } from '@nestjs/common';
-import { Paginate, PaginatePayload } from '../interfaces/paginator.interface';
 
 @Injectable()
 export class PaginatorService {

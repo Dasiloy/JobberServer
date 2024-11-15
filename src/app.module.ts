@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { JobsModule } from './jobs/jobs.module';
@@ -31,9 +30,7 @@ import { Notification } from './notifications/notifications.entity';
 import { JobApplicationTimeline } from './job_applications/job_applications_timeline.entity';
 import { SerializeInterceptor } from './addons/interceptors/serialize.interceptor';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { UploadModule } from './upload/upload.module';
-import { SmsModule } from './sms/sms.module';
-import { EmailModule } from './email/email.module';
+import { GlobalModule } from './global/global.module';
 const cookieSession = require('cookie-session');
 
 @Module({
@@ -120,11 +117,8 @@ const cookieSession = require('cookie-session');
     JobApplicationsModule,
     WorkHistoriesModule,
     NotificationsModule,
-    UploadModule,
-    SmsModule,
-    EmailModule,
+    GlobalModule,
   ],
-  controllers: [AppController],
   providers: [
     AppService,
     {

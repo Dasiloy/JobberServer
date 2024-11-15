@@ -7,4 +7,4 @@ interface Response<T> {
   access_token?: string;
 }
 
-export type ServerResponse<T> = Promise<Response<T>>;
+export type ServerResponse<T = undefined> = Promise<Response<T>>;

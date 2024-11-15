@@ -6,18 +6,19 @@ import {
   Injectable,
   BadRequestException,
   UnauthorizedException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TokenType } from './auth.enum';
 import { RegisterUserDto } from './dtos/register.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Session } from './session.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { RefreshToken } from './refresh_token.entity';
 import { CreateSessionDto } from './dtos/create_seession.dto';
 import { RefreshtokenDto } from './dtos/refresh_token.dto';
 import { LogoutDto } from './dtos/logout.dto';
-import { UtilsService } from '@/auth/utils.service';
+import { UtilsService } from '@/global/utils.service';
 import { LoginDto } from './dtos/login.dto';
 import { ForgotPasswordDto } from './dtos/forgot_password.dto';
 import { ResetPasswordDto } from './dtos/reset_password.dto';
@@ -25,6 +26,7 @@ import { ChangePasswordDto } from './dtos/change_password.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuthEvents } from './events';
 import { SendEmailOtp, SendSmsOtp } from './events/otp.events';
+import { ServerResponse } from '@/addons/interfaces/response.interface';
 
 @Injectable()
 export class AuthService {
@@ -37,6 +39,7 @@ export class AuthService {
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepository: Repository<RefreshToken>,
     private readonly eventemitter: EventEmitter2,
+    private readonly dataSource: DataSource,
   ) {}
 
   private createAccessToken(user: User) {
@@ -90,17 +93,30 @@ export class AuthService {
       where: { user: { id: user.id } },
       relations: ['refresh_token'],
     });
-
-    if (existingSession) {
-      await this.sessionRepository.remove(existingSession);
-    }
     const existingToken = await this.refreshTokenRepository.findOne({
       where: { user: { id: user.id } },
       relations: ['session'],
     });
 
-    if (existingToken) {
-      await this.refreshTokenRepository.remove(existingToken);
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      if (existingSession) {
+        await this.sessionRepository.remove(existingSession);
+      }
+
+      if (existingToken) {
+        await this.refreshTokenRepository.remove(existingToken);
+      }
+    } catch (error: any) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(
+        error?.message || 'Failed to dump session token',
+      );
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -125,7 +141,10 @@ export class AuthService {
     return this.createAccessToken(user);
   }
 
-  async refreshToken({ nestSession, request }: RefreshtokenDto) {
+  async refreshToken({
+    nestSession,
+    request,
+  }: RefreshtokenDto): ServerResponse {
     const payload = this.utilsService.validateToken({
       token_type: TokenType.refresh,
       token: nestSession.refreshToken,
@@ -156,12 +175,12 @@ export class AuthService {
     });
 
     return {
-      message: 'refreshed token successfully',
       access_token,
+      message: 'Refreshed token successfully.',
     };
   }
 
-  async registerUser(data: RegisterUserDto) {
+  async registerUser(data: RegisterUserDto): ServerResponse {
     try {
       const user = this.userService.createUser(data);
       user.email_token = this.utilsService.generateOtpCode();
@@ -189,7 +208,7 @@ export class AuthService {
     }
   }
 
-  async resendEmailVerificationToken(user: User) {
+  async resendEmailVerificationToken(user: User): ServerResponse {
     if (user.email_verified) {
       throw new BadRequestException('Email is already verified.');
     }
@@ -211,7 +230,7 @@ export class AuthService {
     };
   }
 
-  async verifyEmailToken(otp: number, user: User) {
+  async verifyEmailToken(otp: number, user: User): ServerResponse {
     if (user.email_verified) {
       throw new BadRequestException('Email is already verified.');
     }
@@ -245,7 +264,7 @@ export class AuthService {
     };
   }
 
-  async resendPhoneVerificationToken(user: User) {
+  async resendPhoneVerificationToken(user: User): ServerResponse {
     if (user.phone_number_verified) {
       throw new BadRequestException('Phone number is already verified.');
     }
@@ -268,7 +287,7 @@ export class AuthService {
     };
   }
 
-  async verifyPhoneToken(otp: number, user: User) {
+  async verifyPhoneToken(otp: number, user: User): ServerResponse {
     if (!user.email_verified) {
       throw new BadRequestException('Email is not verified.');
     }
@@ -297,9 +316,12 @@ export class AuthService {
     };
   }
 
-  async login(body: LoginDto, { request, nestSession }: RefreshtokenDto) {
+  async login(
+    body: LoginDto,
+    { request, nestSession }: RefreshtokenDto,
+  ): ServerResponse<User> {
     const user = await this.userService.findByEmailOrPhone(body.query, {
-      relations: ['followed_companies', 'profile'],
+      relations: ['profile'],
     });
 
     if (!user) {
@@ -361,7 +383,7 @@ export class AuthService {
     };
   }
 
-  async forgotPassword(body: ForgotPasswordDto) {
+  async forgotPassword(body: ForgotPasswordDto): ServerResponse {
     const user = await this.userService.findByEmailOrPhone(body.query);
 
     if (user) {
@@ -386,7 +408,7 @@ export class AuthService {
     };
   }
 
-  async resendPasswordToken(user: User) {
+  async resendPasswordToken(user: User): ServerResponse {
     if (this.userService.checkTokenExpiry(user, 'password')) {
       user.password_reset_token = this.utilsService.generateOtpCode();
       user.password_reset_token_expired_at =
@@ -408,7 +430,7 @@ export class AuthService {
     };
   }
 
-  async verifyPasswordToken(otp: number, user: User) {
+  async verifyPasswordToken(otp: number, user: User): ServerResponse {
     if (this.userService.checkTokenExpiry(user, 'password')) {
       throw new BadRequestException('Password reset token expired.');
     }
@@ -427,7 +449,7 @@ export class AuthService {
     };
   }
 
-  async resetPassword(user: User, data: ResetPasswordDto) {
+  async resetPassword(user: User, data: ResetPasswordDto): ServerResponse {
     const isSameOldPassword = user.comparePassword(data.password);
     if (isSameOldPassword) {
       throw new BadRequestException(
@@ -445,7 +467,7 @@ export class AuthService {
     };
   }
 
-  async changePassword(user: User, data: ChangePasswordDto) {
+  async changePassword(user: User, data: ChangePasswordDto): ServerResponse {
     const isSameOldPassword = user.comparePassword(data.old_password);
     if (!isSameOldPassword) {
       throw new BadRequestException('Incorrect password.');
@@ -459,16 +481,16 @@ export class AuthService {
     };
   }
 
-  async GetLoggedInUser(user: User) {
+  async GetLoggedInUser(user: User): ServerResponse<User> {
     const full_user = await this.userService.findById(user.id, {
-      relations: ['followed_companies', 'profile'],
+      relations: ['profile'],
     });
     return {
       message: 'User retrieved successfully',
       data: full_user,
     };
   }
-  async logout({ user, nestSession }: LogoutDto) {
+  async logout({ user, nestSession }: LogoutDto): ServerResponse {
     await this.dumpSessionToken(user);
 
     nestSession.refreshToken = null;
