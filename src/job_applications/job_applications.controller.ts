@@ -10,8 +10,13 @@ import { Serialize } from '@/addons/decorators/serialize.decorator';
 import { JobApplicationTimeLineDto } from './dtos/application.timeline.dto';
 import { ApplicationDto } from './dtos/application.dto';
 import { SingleApplicationDto } from './dtos/single.application.dto';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('job-applications')
+@ApiTags('Job Application')
+@Controller({
+  version: '1',
+  path: 'job-applications',
+})
 export class JobApplicationsController {
   constructor(
     private readonly jobApplicationsService: JobApplicationsService,

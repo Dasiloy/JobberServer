@@ -1,0 +1,40 @@
+# .dockerignore
+
+# Ignore node_modules and other dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Ignore build directories
+dist
+build
+out
+
+# Ignore test and documentation files
+*.md
+test/
+tests/
+coverage/
+
+# Ignore configuration files for the local environment
+.env.development
+.env.test
+
+
+# Ignore Docker-specific files
+.dockerignore
+Dockerfile
+
+# Ignore editor and IDE settings
+*.swp
+*~
+.idea
+.vscode
+.DS_Store
+
+# Ignore temporary files
+tmp/
+temp/
+*.bak
+*.tmp

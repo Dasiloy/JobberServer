@@ -43,7 +43,7 @@ export class ProfilesService {
   async createUserProfile(
     data: Partial<Profile>,
     { user, nestSession, request }: CreateSessionDto,
-  ): ServerResponse<User> {
+  ): ServerResponse<Profile> {
     let profile = await this.findByUserId(user.id);
     if (profile) {
       throw new ConflictException(
@@ -62,15 +62,31 @@ export class ProfilesService {
 
     return {
       access_token,
-      data: user,
+      data: user.profile,
       message: 'Profile created successfully.',
+    };
+  }
+
+  async getCurrentUserProfile(user: User): ServerResponse<Profile> {
+    const profile = await this.repository
+      .createQueryBuilder('profile')
+      .leftJoin('profile.user', 'user')
+      .leftJoinAndSelect('profile.educations', 'education')
+      .leftJoinAndSelect('profile.work_history', 'work_history')
+      .leftJoinAndSelect('profile.portfolio', 'portfolio')
+      .where('user.id = :user_id', { user_id: user.id })
+      .getOne();
+
+    return {
+      data: profile,
+      message: 'Profile fetched successfully.',
     };
   }
 
   async updateMyProfile(
     data: UpdateProfileDto,
     user: User,
-  ): ServerResponse<User> {
+  ): ServerResponse<Profile> {
     const profile = await this.findByUserId(user.id);
     if (!profile) {
       throw new NotFoundException('User does not have a profile.');
@@ -79,7 +95,7 @@ export class ProfilesService {
     await this.usersService.saveUser(user);
 
     return {
-      data: user,
+      data: user.profile,
       message: 'Profile updated successfully.',
     };
   }

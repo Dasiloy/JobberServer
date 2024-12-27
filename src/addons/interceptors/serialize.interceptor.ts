@@ -13,7 +13,6 @@ import { ClassInterface } from '../interfaces/class.interface';
 @Injectable()
 export class SerializeInterceptor implements NestInterceptor {
   constructor(private readonly reflector: Reflector) {}
-  x;
 
   intercept(
     context: ExecutionContext,

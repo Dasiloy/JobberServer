@@ -20,9 +20,14 @@ import { ForgotPasswordDto } from './dtos/forgot_password.dto';
 import { ResetPasswordDto } from './dtos/reset_password.dto';
 import { ChangePasswordDto } from './dtos/change_password.dto';
 import { Serialize } from '@/addons/decorators/serialize.decorator';
-import { SingleUserDto } from '@/users/dtos/single.user.dto';
+import { UserDto } from '@/users/dtos/user.dto';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('auth')
+@ApiTags('Auth')
+@Controller({
+  version: '1',
+  path: 'auth',
+})
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -61,7 +66,7 @@ export class AuthController {
   }
 
   @SetRouteMeta(RouteMeta.IS_PUBLIC)
-  @Serialize(SingleUserDto)
+  @Serialize(UserDto)
   @HttpCode(200)
   @Post('/login')
   login(
@@ -125,7 +130,7 @@ export class AuthController {
   }
 
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
-  @Serialize(SingleUserDto)
+  @Serialize(UserDto)
   @HttpCode(200)
   @Get('/me')
   getLoggedInUser(@CurrentUser() user: User) {

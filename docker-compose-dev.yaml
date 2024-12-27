@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:latest
+    environment: 
+      POSTGRES_DB: jobberDev
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - '5432:5432' 
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /app/node_modules
+      - .:/app
+    env_file:
+      - .env.development
+    ports:
+      - '3000:3000'
+    
