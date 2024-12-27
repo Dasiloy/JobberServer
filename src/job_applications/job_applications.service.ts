@@ -107,7 +107,7 @@ export class JobApplicationsService {
       .leftJoinAndSelect('job.company', 'company');
 
     if (job_id) {
-      query.where('job.id = :job_id', { job_id });
+      query.andWhere('job.id = :job_id', { job_id });
     }
 
     const [data, totalCount] = await query

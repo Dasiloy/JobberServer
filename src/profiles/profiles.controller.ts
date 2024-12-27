@@ -5,6 +5,7 @@ import {
   Session,
   Controller,
   UseInterceptors,
+  Get,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ProfilesService } from './profiles.service';
@@ -18,14 +19,19 @@ import { Serialize } from '@/addons/decorators/serialize.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileTypes } from '@/addons/constants/file.constants';
 import { UploadFileWithValidators } from '@/addons/decorators/file.decorator';
-import { SingleUserDto } from '@/users/dtos/single.user.dto';
+import { ProfileDto } from './dtos/profile.dto';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('profiles')
+@ApiTags('Profiles')
+@Controller({
+  version: '1',
+  path: 'profiles',
+})
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
   @SetRouteMeta(RouteMeta.IS_PROFILE_AUTH_REQUIRED)
-  @Serialize(SingleUserDto)
+  @Serialize(ProfileDto)
   @Post('')
   createProfile(
     @Body() body: CreateProfileDto,
@@ -41,14 +47,13 @@ export class ProfilesController {
   }
 
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
-  @Serialize(SingleUserDto)
+  @Serialize(ProfileDto)
   @Post('/update')
   updateMyProfile(@Body() body: UpdateProfileDto, @CurrentUser() user: User) {
     return this.profilesService.updateMyProfile(body, user);
   }
 
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
-  @Serialize(SingleUserDto)
   @UseInterceptors(FileInterceptor('file'))
   @Post('upload-resume')
   uploadResume(
@@ -57,5 +62,12 @@ export class ProfilesController {
     file: Express.Multer.File,
   ) {
     return this.profilesService.uploadResume(file, user);
+  }
+
+  @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  // @Serialize(SingleProfileDto)
+  @Get('me')
+  getMyProfile(@CurrentUser() user: User) {
+    return this.profilesService.getCurrentUserProfile(user);
   }
 }

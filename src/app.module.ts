@@ -59,6 +59,8 @@ const cookieSession = require('cookie-session');
         AWS_SECRET_ACCESS_KEY: Joi.string().required(),
         AWS_REGION: Joi.string().required(),
         AWS_IDENTITY: Joi.string().required(),
+        SWAGGER_USER: Joi.string().required(),
+        SWAGGER_PASSWORD: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRootAsync({

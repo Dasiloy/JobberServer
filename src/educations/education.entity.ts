@@ -11,7 +11,7 @@ export class Education extends BaseEntity {
   degree: string;
 
   @Column()
-  courses: string;
+  course: string;
 
   @Column('date')
   start_date: Date;

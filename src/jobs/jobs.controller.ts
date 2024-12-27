@@ -10,8 +10,13 @@ import { User } from '@/users/users.entity';
 import { QueryJobDto } from './dtos/query,job.dto';
 import { PaginationDto } from '../global/dtos/pagination.dto';
 import { SingleJobDto } from './dtos/single.job.dto';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('jobs')
+@ApiTags('Jobs')
+@Controller({
+  version: '1',
+  path: 'jobs',
+})
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 

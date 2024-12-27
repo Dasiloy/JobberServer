@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { FindOneOptions, Repository } from 'typeorm';
 import { Job } from './jobs.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -144,46 +148,56 @@ export class JobsService {
     user: User,
     { page, limit }: PaginationDto,
   ): ServerResponse<Job[]> {
-    const full_user = await this.userService.findById(user.id, {
-      relations: {
-        profile: true,
-        followed_companies: true,
-      },
-    });
+    try {
+      const full_user = await this.userService.findById(user.id, {
+        relations: {
+          profile: true,
+          followed_companies: true,
+        },
+      });
 
-    const [jobs, count] = await this.repository
-      .createQueryBuilder('job')
-      .leftJoinAndSelect('job.company', 'company')
-      .where('company.id IN (:...company_ids)', {
-        company_ids: full_user.followed_companies.map((c) => c.id),
-      })
-      .orWhere('job.title ILIKE :title', {
-        title: `%${full_user.profile.job_profession}%`,
-      })
-      .orWhere('job.types && :job_types', {
-        job_types: full_user.profile.job_types,
-      })
-      .orWhere('job.locations && :locations', {
-        locations: full_user.profile.job_locations,
-      })
-      .orWhere('job.experiences && :experiences', {
-        experiences: full_user.profile.job_experiences,
-      })
-      .orderBy('job.created_at', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
+      const query = this.repository
+        .createQueryBuilder('job')
+        .leftJoinAndSelect('job.company', 'company');
 
-    return {
-      message: 'Recommended jobs fetched successfully',
-      pagination: this.paginatorService.paginate({
-        count,
-        limit,
-        page,
-        page_size: jobs.length,
-      }),
-      data: jobs,
-    };
+      if (full_user.followed_companies.length) {
+        query.where('company.id IN (:...company_ids)', {
+          company_ids: full_user.followed_companies.map((c) => c.id),
+        });
+      }
+
+      const [jobs, count] = await query
+        .orWhere('job.title ILIKE :title', {
+          title: `%${full_user.profile.job_profession}%`,
+        })
+        .orWhere('job.types && :job_types', {
+          job_types: full_user.profile.job_types,
+        })
+        .orWhere('job.locations && :locations', {
+          locations: full_user.profile.job_locations,
+        })
+        .orWhere('job.experiences && :experiences', {
+          experiences: full_user.profile.job_experiences,
+        })
+        .orderBy('job.created_at', 'DESC')
+        .skip((page - 1) * limit)
+        .take(limit)
+        .getManyAndCount();
+
+      return {
+        message: 'Recommended jobs fetched successfully',
+        pagination: this.paginatorService.paginate({
+          count,
+          limit,
+          page,
+          page_size: jobs.length,
+        }),
+        data: jobs,
+      };
+    } catch (e) {
+      console.log(e);
+      throw new InternalServerErrorException('an error occured');
+    }
   }
 
   async getJob(id: string): ServerResponse<Job> {

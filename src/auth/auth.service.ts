@@ -482,12 +482,9 @@ export class AuthService {
   }
 
   async GetLoggedInUser(user: User): ServerResponse<User> {
-    const full_user = await this.userService.findById(user.id, {
-      relations: ['profile'],
-    });
     return {
       message: 'User retrieved successfully',
-      data: full_user,
+      data: user,
     };
   }
   async logout({ user, nestSession }: LogoutDto): ServerResponse {

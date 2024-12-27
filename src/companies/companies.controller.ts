@@ -19,7 +19,10 @@ import { PaginationDto } from '@/global/dtos/pagination.dto';
 import { SingleCompanyDto } from './dtos/single.company.dto';
 import { FollowCompanyDto } from './dtos/follow.company.dto';
 
-@Controller('companies')
+@Controller({
+  version: '1',
+  path: 'companies',
+})
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
