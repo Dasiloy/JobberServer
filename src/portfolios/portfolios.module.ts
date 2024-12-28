@@ -7,7 +7,7 @@ import { PortfolioItem } from './portfolios_item.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Portfolio, PortfolioItem])],
-  exports: [PortfoliosService],
+  exports: [PortfoliosService, PortfoliosItemsService],
   controllers: [],
   providers: [PortfoliosService, PortfoliosItemsService],
 })

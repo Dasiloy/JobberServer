@@ -4,17 +4,10 @@ import {
   ArrayUnique,
   IsArray,
   IsEnum,
-  IsString,
   IsOptional,
-  IsNotEmpty,
 } from 'class-validator';
 
 export class UpdateProfileDto {
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  resume_url: string;
-
   @IsOptional()
   @IsArray({ message: 'job_types must be an array' })
   @ArrayNotEmpty({ message: 'job_types cannot be empty' })
@@ -45,3 +38,10 @@ export class UpdateProfileDto {
   @ArrayUnique({ message: 'job_experiences must contain unique values' })
   job_experiences: JobExperience[];
 }
+
+/**
+ *   @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  resume_url: string;
+ */
