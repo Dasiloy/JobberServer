@@ -6,11 +6,6 @@ npm-debug.log
 yarn-error.log
 pnpm-debug.log
 
-# Ignore build directories
-dist
-build
-out
-
 # Ignore test and documentation files
 *.md
 test/
@@ -20,7 +15,7 @@ coverage/
 # Ignore configuration files for the local environment
 .env.development
 .env.test
-
+.env.production
 
 # Ignore Docker-specific files
 .dockerignore
