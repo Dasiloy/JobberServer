@@ -1,10 +1,17 @@
 import { PaginatePayload } from './paginator.interface';
 
-interface Response<T> {
+export interface StandardErrorResponse {
+  status: number;
+  timestamp: string;
+  path: string;
   message: string;
-  data?: T;
-  pagination?: PaginatePayload;
-  access_token?: string;
 }
 
-export type ServerResponse<T = undefined> = Promise<Response<T>>;
+export interface StandardResponse<T = undefined> {
+  data?: T;
+  message: string;
+  access_token?: string;
+  pagination?: PaginatePayload;
+}
+
+export type ServerResponse<T = undefined> = Promise<StandardResponse<T>>;

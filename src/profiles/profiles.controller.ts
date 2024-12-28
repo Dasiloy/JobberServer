@@ -6,6 +6,9 @@ import {
   Controller,
   UseInterceptors,
   Get,
+  Patch,
+  Delete,
+  Param,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ProfilesService } from './profiles.service';
@@ -21,6 +24,10 @@ import { FileTypes } from '@/addons/constants/file.constants';
 import { UploadFileWithValidators } from '@/addons/decorators/file.decorator';
 import { ProfileDto } from './dtos/profile.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { SingleProfileDto } from './dtos/single.profile.dto';
+import { CreateProfilePortfolioItemDto } from './dtos/create_profile_portfolio_item.dto';
+import { PortFolioItemDto } from '@/portfolios/dtos/portfolio_item.dto';
+import { UpdateProfilePortfolioItemDto } from './dtos/update_profile_portfolio_item.dto';
 
 @ApiTags('Profiles')
 @Controller({
@@ -65,7 +72,48 @@ export class ProfilesController {
   }
 
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
-  // @Serialize(SingleProfileDto)
+  @UseInterceptors(FileInterceptor('file'))
+  @Post('upload-portfolio-item')
+  uploadPortfolioItem(
+    @CurrentUser() user: User,
+    @UploadFileWithValidators(FileTypes.PORTFOLIO_ITEMS, 1024 * 1024 * 1)
+    file: Express.Multer.File,
+  ) {
+    return this.profilesService.uploadPortfolioItem(file, user);
+  }
+
+  @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Serialize(PortFolioItemDto)
+  @Post('portfolio-items')
+  createProfilePortfolioItem(
+    @Body() data: CreateProfilePortfolioItemDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.profilesService.createProfilePortfolioItem(data, user);
+  }
+
+  @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Serialize(PortFolioItemDto)
+  @Patch('portfolio-items/:id')
+  updateProfilePortfolioItem(
+    @Param('id') id: string,
+    @Body() data: UpdateProfilePortfolioItemDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.profilesService.updatePortfolioItem(id, data, user);
+  }
+
+  @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Delete('portfolio-items/:id')
+  deleteProfilePortfolioItem(
+    @Param('id') id: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.profilesService.deletePortfolioItem(id, user);
+  }
+
+  @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Serialize(SingleProfileDto)
   @Get('me')
   getMyProfile(@CurrentUser() user: User) {
     return this.profilesService.getCurrentUserProfile(user);

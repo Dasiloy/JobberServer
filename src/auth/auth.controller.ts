@@ -5,6 +5,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpStatus,
   Post,
   Req,
   Session,
@@ -21,7 +22,23 @@ import { ResetPasswordDto } from './dtos/reset_password.dto';
 import { ChangePasswordDto } from './dtos/change_password.dto';
 import { Serialize } from '@/addons/decorators/serialize.decorator';
 import { UserDto } from '@/users/dtos/user.dto';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import {
+  RegisterUserBadRequestResponse,
+  RegisterUserResponse,
+} from './responses/register.response';
+import {
+  ResendEmailTokenBadRequestResponse,
+  ResendEmailTokenResponse,
+} from './responses/resend.email.token.response';
 
 @ApiTags('Auth')
 @Controller({
@@ -32,15 +49,45 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @SetRouteMeta(RouteMeta.IS_PUBLIC)
-  @HttpCode(201)
+  @HttpCode(HttpStatus.CREATED)
   @Post('/register')
+  @ApiOperation({
+    summary: 'Register New User',
+    description: 'The register endpoint for new user',
+  })
+  @ApiBody({
+    required: true,
+    type: RegisterUserDto,
+    description: 'Register payload for user',
+  })
+  @ApiCreatedResponse({
+    type: RegisterUserResponse,
+    description: 'User account registered, Token will be sent to email.',
+  })
+  @ApiBadRequestResponse({
+    type: RegisterUserBadRequestResponse,
+    description: 'Invalid payload or user already exists',
+  })
   register(@Body() body: RegisterUserDto) {
     return this.authService.registerUser(body);
   }
 
   @SetRouteMeta(RouteMeta.IS_OTP_REQUIRED)
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   @Post('/resend-email-verification-token')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Resend Email Verification Token',
+    description: 'Resend email verification token to user email',
+  })
+  @ApiOkResponse({
+    type: ResendEmailTokenResponse,
+    description: 'Email verification token resent successfully',
+  })
+  @ApiBadRequestResponse({
+    type: ResendEmailTokenBadRequestResponse,
+    description: 'Invalid token or user not found',
+  })
   resendEmailVerificationToken(@CurrentUser() user: User) {
     return this.authService.resendEmailVerificationToken(user);
   }

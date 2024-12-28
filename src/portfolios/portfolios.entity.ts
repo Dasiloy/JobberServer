@@ -7,6 +7,7 @@ export class Portfolio extends BaseEntity {
   @OneToMany(() => PortfolioItem, (portfolioItem) => portfolioItem.portfolio, {
     cascade: true,
     nullable: true,
+    eager: true,
   })
   portfolio_items: PortfolioItem[];
 }

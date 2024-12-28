@@ -10,7 +10,7 @@ import { JobApplicationsModule } from './job_applications/job_applications.modul
 import { WorkHistoriesModule } from './work_histories/work_histories.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import * as morgan from 'morgan';
@@ -31,6 +31,8 @@ import { JobApplicationTimeline } from './job_applications/job_applications_time
 import { SerializeInterceptor } from './addons/interceptors/serialize.interceptor';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GlobalModule } from './global/global.module';
+import { GlobalExceptionsFilter } from './addons/filters/global.filter';
+import { AppController } from './app.controller';
 const cookieSession = require('cookie-session');
 
 @Module({
@@ -58,9 +60,16 @@ const cookieSession = require('cookie-session');
         AWS_ACCESS_KEY_ID: Joi.string().required(),
         AWS_SECRET_ACCESS_KEY: Joi.string().required(),
         AWS_REGION: Joi.string().required(),
-        AWS_IDENTITY: Joi.string().required(),
         SWAGGER_USER: Joi.string().required(),
         SWAGGER_PASSWORD: Joi.string().required(),
+        TERMII_SENDER_ID: Joi.string().required(),
+        TERMII_BASE_URL: Joi.string().required(),
+        TERMII_API_KEY: Joi.string().required(),
+        SMTP_HOST: Joi.string().required(),
+        SMTP_PORT: Joi.number().required(),
+        SMTP_USER: Joi.string().required(),
+        SMTP_PASSWORD: Joi.string().required(),
+        SMTP_SENDER: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRootAsync({
@@ -107,7 +116,7 @@ const cookieSession = require('cookie-session');
       removeListener: true,
       maxListeners: 10,
       verboseMemoryLeak: false,
-      ignoreErrors: false,
+      ignoreErrors: true,
     }),
     // main modules
     UsersModule,
@@ -133,7 +142,12 @@ const cookieSession = require('cookie-session');
       provide: APP_INTERCEPTOR,
       useClass: SerializeInterceptor,
     },
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionsFilter,
+    },
   ],
+  controllers: [AppController],
 })
 export class AppModule {
   constructor(private readonly configService: ConfigService) {}

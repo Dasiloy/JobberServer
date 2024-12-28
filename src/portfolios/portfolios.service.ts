@@ -10,8 +10,7 @@ export class PortfoliosService {
     private readonly portfolioRepository: Repository<Portfolio>,
   ) {}
 
-  async createPortfolio() {
-    const portfolio = this.portfolioRepository.create();
-    return this.portfolioRepository.save(portfolio);
+  createPortfolio() {
+    return this.portfolioRepository.create();
   }
 }

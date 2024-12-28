@@ -1,9 +1,9 @@
+import { Expose, Type } from 'class-transformer';
 import { ProfileDto } from './profile.dto';
+import { PortfolioDto } from '@/portfolios/dtos/portfolio.dto';
 
 export class SingleProfileDto extends ProfileDto {
-  //   @OneToOne(() => Portfolio, {
-  //     cascade: true,
-  //   })
-  //   @JoinColumn()
-  //   portfolio: Portfolio;
+  @Expose()
+  @Type(() => PortfolioDto)
+  portfolio: PortfolioDto;
 }

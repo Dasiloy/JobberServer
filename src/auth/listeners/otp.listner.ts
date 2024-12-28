@@ -17,10 +17,14 @@ export class OtpEventListener {
   })
   async handleEmailEvent(event: SendEmailOtp) {
     const { user, ...rest } = event;
-    this.mailerService.sendMail({
-      ...rest,
-      To: user.email,
-    });
+    try {
+      this.mailerService.sendMail({
+        ...rest,
+        To: user.email,
+      });
+    } catch (error) {
+      console.log('Error sending email', error);
+    }
   }
 
   @OnEvent(AuthEvents.SEND_PHONE_OTP, {
@@ -28,9 +32,13 @@ export class OtpEventListener {
   })
   async handlePhoneEvent(event: SendSmsOtp) {
     const { user, ...rest } = event;
-    this.smsService.sendSms({
-      ...rest,
-      PhoneNumber: `+${user.country_code}${user.phone_number}`,
-    });
+    try {
+      this.smsService.sendSms({
+        ...rest,
+        PhoneNumber: user.country_code.concat(user.phone_number),
+      });
+    } catch (error) {
+      console.log('Error sending SMS', error);
+    }
   }
 }
