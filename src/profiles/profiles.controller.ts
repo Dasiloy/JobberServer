@@ -9,6 +9,7 @@ import {
   Patch,
   Delete,
   Param,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ProfilesService } from './profiles.service';
@@ -28,6 +29,9 @@ import { SingleProfileDto } from './dtos/single.profile.dto';
 import { CreateProfilePortfolioItemDto } from './dtos/create_profile_portfolio_item.dto';
 import { PortFolioItemDto } from '@/portfolios/dtos/portfolio_item.dto';
 import { UpdateProfilePortfolioItemDto } from './dtos/update_profile_portfolio_item.dto';
+import { CreateProfileWorkHistoryDto } from './dtos/create_profile_work_history.dto';
+import { UpdateProfileWorkHistoryDto } from './dtos/upodate_profile_work_history.dto';
+import { WorkHistoryDto } from '@/work_histories/dtos/work_history.dto';
 
 @ApiTags('Profiles')
 @Controller({
@@ -96,7 +100,14 @@ export class ProfilesController {
   @Serialize(PortFolioItemDto)
   @Patch('portfolio-items/:id')
   updateProfilePortfolioItem(
-    @Param('id') id: string,
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: 400,
+      }),
+    )
+    id: string,
     @Body() data: UpdateProfilePortfolioItemDto,
     @CurrentUser() user: User,
   ) {
@@ -106,10 +117,61 @@ export class ProfilesController {
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
   @Delete('portfolio-items/:id')
   deleteProfilePortfolioItem(
-    @Param('id') id: string,
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: 400,
+      }),
+    )
+    id: string,
     @CurrentUser() user: User,
   ) {
     return this.profilesService.deletePortfolioItem(id, user);
+  }
+
+  @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Serialize(WorkHistoryDto)
+  @Post('work-history')
+  createProfileWorkHistory(
+    @Body() data: CreateProfileWorkHistoryDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.profilesService.createProfileWorkHistory(data, user);
+  }
+
+  @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Serialize(WorkHistoryDto)
+  @Patch('work-history/:id')
+  updateProfileWorkHistory(
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: 400,
+      }),
+    )
+    id: string,
+    @Body() data: UpdateProfileWorkHistoryDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.profilesService.updateProfileWorkHistory(id, data, user);
+  }
+
+  @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Delete('work-history/:id')
+  deleteWorkHistory(
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: 400,
+      }),
+    )
+    id: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.profilesService.deleteProfileWorkHistory(id, user);
   }
 
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)

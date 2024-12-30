@@ -4,7 +4,7 @@ import { User } from '@/users/users.entity';
 import { Expose, Type } from 'class-transformer';
 import { Company } from '../companies.entity';
 import { CompanyJobDto } from '@/jobs/dtos/company.job.dto';
-import { WorkHistory } from '@/work_histories/work_histories.entity';
+import { CompanyWorkHistoryDto } from '@/work_histories/dtos/company_work_history.dto';
 
 export class SingleCompanyDto {
   @Expose()
@@ -33,8 +33,8 @@ export class SingleCompanyDto {
   followers: User[];
 
   @Expose()
-  @Type(() => WorkHistory) // we need to import the actual dto here
-  employments: WorkHistory[];
+  @Type(() => CompanyWorkHistoryDto)
+  employments: CompanyWorkHistoryDto[];
 
   @Expose()
   @Type(() => CompanyJobDto)

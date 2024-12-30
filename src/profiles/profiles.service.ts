@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -17,6 +18,11 @@ import { PortfoliosService } from '@/portfolios/portfolios.service';
 import { PortfolioItem } from '@/portfolios/portfolios_item.entity';
 import { PortfoliosItemsService } from '@/portfolios/portfolios_item.service';
 import { CreateProfilePortfolioItemDto } from './dtos/create_profile_portfolio_item.dto';
+import { CreateProfileWorkHistoryDto } from './dtos/create_profile_work_history.dto';
+import { WorkHistoriesService } from '@/work_histories/work_histories.service';
+import { CompaniesService } from '../companies/companies.service';
+import { Company } from '@/companies/companies.entity';
+import { WorkHistory } from '@/work_histories/work_histories.entity';
 
 @Injectable()
 export class ProfilesService {
@@ -27,6 +33,8 @@ export class ProfilesService {
     private readonly uploadService: UploadService,
     private readonly portfolioService: PortfoliosService,
     private readonly portfolioItemsService: PortfoliosItemsService,
+    private readonly workHistoryService: WorkHistoriesService,
+    private readonly companyService: CompaniesService,
   ) {}
 
   findById(id: string, options: Omit<FindOneOptions<Profile>, 'where'> = {}) {
@@ -87,6 +95,7 @@ export class ProfilesService {
       .leftJoin('profile.user', 'user')
       .leftJoinAndSelect('profile.educations', 'education')
       .leftJoinAndSelect('profile.work_history', 'work_history')
+      .leftJoinAndSelect('work_history.company', 'company')
       .leftJoinAndSelect('profile.portfolio', 'portfolio')
       .leftJoinAndSelect('portfolio.portfolio_items', 'portfolio_item')
       .where('user.id = :user_id', { user_id: user.id })
@@ -261,6 +270,141 @@ export class ProfilesService {
 
     return {
       message: 'Portfolio item deleted successfully.',
+    };
+  }
+
+  async createProfileWorkHistory(
+    data: CreateProfileWorkHistoryDto,
+    user: User,
+  ): ServerResponse<WorkHistory> {
+    const profile = await this.findByUserId(user.id, {
+      relations: ['work_history'],
+    });
+
+    if (!profile) {
+      throw new NotFoundException('No profile found.');
+    }
+
+    // check if we  have company id
+    let company: Company;
+    if (data.company_id) {
+      company = await this.companyService.findById(data.company_id);
+      if (!company) {
+        throw new NotFoundException('Company not found.');
+      }
+    }
+
+    const workHistory = this.workHistoryService.createWorkHistory();
+    workHistory.title = data.title;
+    workHistory.job_type = data.job_type;
+    workHistory.job_location = data.job_location;
+    workHistory.start_date = new Date(data.start_date);
+    if (data.end_date) workHistory.end_date = new Date(data.end_date);
+
+    if (company) {
+      workHistory.company = company;
+    } else {
+      workHistory.company_name = data.company_name;
+      workHistory.company_address = data.company_address;
+    }
+
+    profile.work_history.push(workHistory);
+    await this.repository.save(profile);
+
+    return {
+      data: workHistory,
+      message: 'Work history created successfully.',
+    };
+  }
+
+  async updateProfileWorkHistory(
+    workHistoryId: string,
+    data: CreateProfileWorkHistoryDto,
+    user: User,
+  ): ServerResponse<WorkHistory> {
+    const profile = await this.findByUserId(user.id, {
+      relations: ['work_history'],
+    });
+
+    if (!profile) {
+      throw new NotFoundException('No profile found.');
+    }
+
+    const workHistory = await this.workHistoryService.findById(
+      workHistoryId,
+      {
+        profile: {
+          id: profile.id,
+        },
+      },
+      {
+        relations: ['company'],
+      },
+    );
+
+    if (!workHistory) {
+      throw new NotFoundException('Work history not found.');
+    }
+
+    const { company_id, company_name, company_address, ...workHistoryData } =
+      data;
+
+    const updatedWorkHistory = Object.assign(workHistory, workHistoryData);
+
+    if (company_id) {
+      const company = await this.companyService.findById(company_id);
+      if (!company) {
+        throw new NotFoundException('Company not found.');
+      }
+      updatedWorkHistory.company = company;
+      updatedWorkHistory.company_name = null;
+      updatedWorkHistory.company_address = null;
+    } else if (company_name || company_address) {
+      updatedWorkHistory.company = null;
+      if (company_name) updatedWorkHistory.company_name = company_name;
+      if (company_address) updatedWorkHistory.company_address = company_address;
+
+      if (
+        !updatedWorkHistory.company_name ||
+        !updatedWorkHistory.company_address
+      ) {
+        throw new BadRequestException('Company name and address is required.');
+      }
+    }
+
+    await this.workHistoryService.saveWorkHistory(updatedWorkHistory);
+    return {
+      data: updatedWorkHistory,
+      message: 'Work history updated successfully.',
+    };
+  }
+
+  async deleteProfileWorkHistory(
+    workHistoryId: string,
+    user: User,
+  ): ServerResponse {
+    const profile = await this.findByUserId(user.id, {
+      relations: ['work_history'],
+    });
+
+    if (!profile) {
+      throw new NotFoundException('No profile found.');
+    }
+
+    const workHistory = await this.workHistoryService.findById(workHistoryId, {
+      profile: {
+        id: profile.id,
+      },
+    });
+
+    if (!workHistory) {
+      throw new NotFoundException('Work history not found.');
+    }
+
+    await this.workHistoryService.deleteWorkHistory(workHistory);
+
+    return {
+      message: 'Work history deleted successfully.',
     };
   }
 }

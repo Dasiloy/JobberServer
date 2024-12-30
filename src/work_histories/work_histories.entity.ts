@@ -29,12 +29,12 @@ export class WorkHistory extends BaseEntity {
     enum: JobLocation,
     nullable: false,
   })
-  job_location_type: JobLocation;
+  job_location: JobLocation;
 
   @Column('simple-json', {
     nullable: true,
   })
-  address: Address;
+  company_address: Address;
 
   @Column('date')
   start_date: Date;
@@ -47,6 +47,8 @@ export class WorkHistory extends BaseEntity {
   @ManyToOne(() => Profile, (profile) => profile.work_history)
   profile: Profile;
 
-  @ManyToOne(() => Company, (company) => company.employments)
+  @ManyToOne(() => Company, (company) => company.employments, {
+    cascade: true,
+  })
   company: Company;
 }

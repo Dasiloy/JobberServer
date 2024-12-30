@@ -15,6 +15,8 @@ export class GlobalExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
+    console.log('Error occurred:', exception);
+
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
 
@@ -39,7 +41,8 @@ export class GlobalExceptionsFilter implements ExceptionFilter {
         status = HttpStatus.CONFLICT;
         message = 'Already exists';
       } else {
-        message = 'An error occurred.';
+        status = HttpStatus.INTERNAL_SERVER_ERROR;
+        message = 'Internal server error';
       }
     } else if (exception instanceof Error) {
       // Handle generic Error instances
