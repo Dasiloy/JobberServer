@@ -7,5 +7,7 @@
     "occured",
     "REFRESHTOKEN",
     "TERMII"
-  ]
+  ],
+  "DockerRun.DisableDockerrc": true,
+  "DockerRun.Containers": ["1d3758e81c80"]
 }

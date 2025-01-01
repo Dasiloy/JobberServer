@@ -1,9 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
-import * as basicAuth from 'express-basic-auth';
 import { VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { redirectMiddleware } from './addons/middlewares/redirect.middleware';
 
 async function bootstrap() {
   dotenv.config(); // Load environment variables
@@ -25,14 +25,7 @@ async function bootstrap() {
     prefix: 'v',
   });
 
-  // Basic Auth for Swagger documentation
-  app.use(
-    ['/api/docs', '/api/docs-json'], // Protect the Swagger documentation routes
-    basicAuth({
-      challenge: true,
-      users: { [process.env.SWAGGER_USER]: process.env.SWAGGER_PASSWORD },
-    }),
-  );
+  app.use(redirectMiddleware);
 
   // Swagger setup
   const config = new DocumentBuilder()
