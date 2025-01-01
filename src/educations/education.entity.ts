@@ -4,16 +4,18 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 
 @Entity()
 export class Education extends BaseEntity {
-  @Column()
+  @Column('varchar', { length: 255, nullable: false })
   institution: string;
 
-  @Column()
+  @Column('varchar', { length: 128, nullable: false })
   degree: string;
 
-  @Column()
+  @Column('varchar', { length: 128, nullable: false })
   course: string;
 
-  @Column('date')
+  @Column('date', {
+    nullable: false,
+  })
   start_date: Date;
 
   @Column('date', {
