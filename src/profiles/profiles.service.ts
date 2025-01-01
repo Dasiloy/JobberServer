@@ -23,6 +23,9 @@ import { WorkHistoriesService } from '@/work_histories/work_histories.service';
 import { CompaniesService } from '../companies/companies.service';
 import { Company } from '@/companies/companies.entity';
 import { WorkHistory } from '@/work_histories/work_histories.entity';
+import { EducationsService } from '@/educations/educations.service';
+import { CreateProfileEducationDto } from './dtos/create_profile_education.dto';
+import { Education } from '@/educations/education.entity';
 
 @Injectable()
 export class ProfilesService {
@@ -35,6 +38,7 @@ export class ProfilesService {
     private readonly portfolioItemsService: PortfoliosItemsService,
     private readonly workHistoryService: WorkHistoriesService,
     private readonly companyService: CompaniesService,
+    private readonly educationService: EducationsService,
   ) {}
 
   findById(id: string, options: Omit<FindOneOptions<Profile>, 'where'> = {}) {
@@ -405,6 +409,95 @@ export class ProfilesService {
 
     return {
       message: 'Work history deleted successfully.',
+    };
+  }
+
+  async createProfileEducation(
+    data: CreateProfileEducationDto,
+    user: User,
+  ): ServerResponse<Education> {
+    const profile = await this.findByUserId(user.id, {
+      relations: ['educations'],
+    });
+
+    if (!profile) {
+      throw new NotFoundException('No profile found.');
+    }
+
+    const education = this.educationService.createEducation();
+    education.institution = data.institution;
+    education.degree = data.degree;
+    education.course = data.course;
+    education.start_date = new Date(data.start_date);
+    if (data.end_date) education.end_date = new Date(data.end_date);
+
+    profile.educations.push(education);
+    await this.repository.save(profile);
+
+    return {
+      data: education,
+      message: 'Education created successfully.',
+    };
+  }
+
+  async updateProfileEducation(
+    educationId: string,
+    data: CreateProfileEducationDto,
+    user: User,
+  ): ServerResponse<Education> {
+    const profile = await this.findByUserId(user.id, {
+      relations: ['educations'],
+    });
+
+    if (!profile) {
+      throw new NotFoundException('No profile found.');
+    }
+
+    const education = await this.educationService.findById(educationId, {
+      profile: {
+        id: profile.id,
+      },
+    });
+
+    if (!education) {
+      throw new NotFoundException('Education not found.');
+    }
+
+    const updatedEducation = Object.assign(education, data);
+    await this.educationService.saveEducation(updatedEducation);
+
+    return {
+      data: updatedEducation,
+      message: 'Education updated successfully.',
+    };
+  }
+
+  async deleteProfileEducation(
+    educationId: string,
+    user: User,
+  ): ServerResponse {
+    const profile = await this.findByUserId(user.id, {
+      relations: ['educations'],
+    });
+
+    if (!profile) {
+      throw new NotFoundException('No profile found.');
+    }
+
+    const education = await this.educationService.findById(educationId, {
+      profile: {
+        id: profile.id,
+      },
+    });
+
+    if (!education) {
+      throw new NotFoundException('Education not found.');
+    }
+
+    await this.educationService.deleteEducation(education);
+
+    return {
+      message: 'Education deleted successfully.',
     };
   }
 }

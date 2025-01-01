@@ -32,6 +32,9 @@ import { UpdateProfilePortfolioItemDto } from './dtos/update_profile_portfolio_i
 import { CreateProfileWorkHistoryDto } from './dtos/create_profile_work_history.dto';
 import { UpdateProfileWorkHistoryDto } from './dtos/upodate_profile_work_history.dto';
 import { WorkHistoryDto } from '@/work_histories/dtos/work_history.dto';
+import { CreateProfileEducationDto } from './dtos/create_profile_education.dto';
+import { UpdateProfileEducationDto } from './dtos/update_profile_education.dto';
+import { EducationDto } from '@/educations/dtos/education.dto';
 
 @ApiTags('Profiles')
 @Controller({
@@ -172,6 +175,50 @@ export class ProfilesController {
     @CurrentUser() user: User,
   ) {
     return this.profilesService.deleteProfileWorkHistory(id, user);
+  }
+
+  @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Serialize(EducationDto)
+  @Post('education')
+  createProfileEducation(
+    @Body() data: CreateProfileEducationDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.profilesService.createProfileEducation(data, user);
+  }
+
+  @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Serialize(EducationDto)
+  @Patch('education/:id')
+  updateProfileEducation(
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: 400,
+      }),
+    )
+    id: string,
+    @Body() data: UpdateProfileEducationDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.profilesService.updateProfileEducation(id, data, user);
+  }
+
+  @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
+  @Delete('education/:id')
+  deleteProfileEducation(
+    @Param(
+      'id',
+      new ParseUUIDPipe({
+        version: '4',
+        errorHttpStatusCode: 400,
+      }),
+    )
+    id: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.profilesService.deleteProfileEducation(id, user);
   }
 
   @SetRouteMeta(RouteMeta.IS_AUTH_REQUIRED)
