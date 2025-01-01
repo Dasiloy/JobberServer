@@ -32,7 +32,6 @@ import { SerializeInterceptor } from './addons/interceptors/serialize.intercepto
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GlobalModule } from './global/global.module';
 import { GlobalExceptionsFilter } from './addons/filters/global.filter';
-import { AppController } from './app.controller';
 const cookieSession = require('cookie-session');
 
 @Module({
@@ -147,7 +146,6 @@ const cookieSession = require('cookie-session');
       useClass: GlobalExceptionsFilter,
     },
   ],
-  controllers: [AppController],
 })
 export class AppModule {
   constructor(private readonly configService: ConfigService) {}

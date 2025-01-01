@@ -5,7 +5,7 @@ export function redirectMiddleware(
   res: Response,
   next: NextFunction,
 ) {
-  if (req.path === '/') {
+  if (req.path === '/' || req.path === '/api' || req.path === '/api/v1') {
     return res.redirect(302, '/api/docs');
   }
   next();
