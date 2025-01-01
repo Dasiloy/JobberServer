@@ -1,0 +1,31 @@
+name: Deploy JobberServer
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  deploy:
+    name: Build, Test and Push Jobber Server Docker Image
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Login to Docker
+        run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+
+      - name: Build Docker Image
+        run: docker build -t dasiloy/docker-jobber-server:latest -f Dockerfile.deploy .
+
+      - name: Push Docker Image
+        run: docker push dasiloy/docker-jobber-server:latest
+
+      - name: Remove unused Docker images
+        run: docker image prune -f
+
+      - name: Logout from Docker
+        run: docker logout
